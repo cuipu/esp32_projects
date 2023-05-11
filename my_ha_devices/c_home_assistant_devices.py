@@ -4,6 +4,8 @@ from c_utils import MultiThreadUtil
 from umqttsimple import MQTTClient
 import time
 import sys
+import gc
+
 
 HOMEASSISTANT_DEVICE_NAME = 'esp32-tepmerature'
 
@@ -41,6 +43,8 @@ RELAY_ON_TIME = 10
 
 #MQTT_COMMAND_TOPIC = 'HA-esp32-relay/switch/set'
 #MQTT_STATE_TOPIC='HA-esp32-relay/switch/state'
+
+
 
 class HATemperatureSensor(HomeAssistantSensorDevice):
     def __init__(self):
@@ -101,10 +105,10 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def __init__(self):
        
         self.relay = None
-
         self.init()
 
     def init_device_info(self, homeassistant_device_name: str = None, homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
+
         self.homeassistant_device_name = HOMEASSISTANT_DEVICE_NAME_SWITCH
         self.homeassistant_switch_name = HOMEASSISTANT_SWITCH_NAME_RELAY_CONTROLLER
         self.homeassistant_switch_type = HOMEASSISTANT_SWITCH_TYPE_RELAY_CONTROLLER
@@ -153,8 +157,14 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def do_work(self):
         while True:
             try:
-                # self.mqtt_client.check_msg()
+                # TODO 如果注释掉这里，程序3分钟不会挂掉，不是内存溢出的问题，不是检测频率的问题
                 self.mqtt_client.check_msg()
+                # self.mqtt_client.wait_msg()
+                free_mem = gc.mem_free()
+                print("available memory {} bytes \n".format(free_mem))
+                # 获取详细的内存信息
+                # 执行垃圾回收
+                #gc.collect()
                 # 控制检测MQTT的频率
                 time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
             except Exception as e:

@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-11 17:44:01
-FilePath: \Demo\my_ha_devices\c_home_assistant.py
+LastEditTime: 2023-05-11 22:17:36
+FilePath: \esp32_projects\my_ha_devices\c_home_assistant.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 

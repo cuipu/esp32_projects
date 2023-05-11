@@ -537,26 +537,60 @@ class LightSensor:
         self.hander = hander
         self.digital_pin.irq(handler=self.hander, trigger=Pin.IRQ_RISING)
         
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-05-02 22:28:26
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-05-03 10:01:37
+FilePath: \Demo\c_ultrasonic_meter.py
+Description: 超声波测距仪
 
-def photosensitive_sensor_test():
-    photosensitive_sensor = PhotosensitiveSensor(4, 23)
-    while True:
-        print(photosensitive_sensor.collect_light_result())
-        time.sleep(0.1)
+硬件: HC-SR04
+需要电压：5.0V
 
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+'''
 
-def main():
-    photosensitive_sensor_test()
+"""
+echo脚会由0变为1此时MCU开始计时，当超声波模块接收到返回的声波时，echo由1变为0此时MCU停止计时
+然后再通过声音的传输速度是340m/s就可以计算出距离，切记要除以2，毕竟声音是来回的距离
+"""
 
+class UltrasonicDistanceSensor:
+    def __init__(self, trig_gpio_num: int, echo_gpio_num: int):
 
-if __name__ == "__main__":
-    main()
+        self.trig_pin = Pin(trig_gpio_num, Pin.OUT)
+        self.echo_pin = Pin(echo_gpio_num, Pin.IN)
+        self.trig_pin.value(0)
+        self.echo_pin.value(0)
+
+    def do_measure(self):
+        # 告诉芯片要开始测试了，不同的板子出发条件不同
+        self.trig_pin.value(1)
+        time.sleep_us(10)
+        self.trig_pin.value(0)
+
+        # 检测回响信号，为低电平时，测距完成
+        while self.echo_pin.value() == 0:
+            # 开始不断递增的微秒计数器 1
+            t1 = time.ticks_us()
+        # 检测回响信号，为高电平时，测距开始
+        while self.echo_pin.value() == 1:
+            # 开始不断递增的微秒计数器 2
+            t2 = time.ticks_us()
+
+        # 计算两次调用 ticks_ms(), ticks_us(), 或 ticks_cpu()之间的时间，这里是ticks_us()
+        # 这时间差就是测距总时间，在乘声音的传播速度340米/秒，除2就是距离
+        # 例如 t2-t1=12848此时单位是us，转换为秒就是12848 / 1000000 此时单位是秒，此时如果乘以340计算出的单位是米，
+        # 然后再乘以100就是厘米，因此，直接 用12848/10000即可
+        t3 = time.ticks_diff(t2, t1) / 10000
+
+        # 这里返回的是：开始测距的时间减测距完成的时间*声音的速度/2（来回）
+        return t3 * 340 / 2
 
 
 
 # 音符与对应的的频率
-
-
 class PassiveBuzzerMusic():
     B0 = 31
     C1 = 33

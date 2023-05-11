@@ -8,7 +8,7 @@ Description:
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
 '''
-from c_home_assistant_devices import HASwitchDevice, HATemperatureSensor
+from c_home_assistant_devices import HASwitchDevice
 import sys
 
 # This file is executed on every boot (including wake-boot from deepsleep)
@@ -44,7 +44,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-'''
+
 
 import c_devices
 from c_utils import MultiThreadUtil,WiFiUtils
@@ -124,3 +124,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''
