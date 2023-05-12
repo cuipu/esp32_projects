@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-09 19:16:24
-FilePath: \Demo\my_ha_devices\c_utils.py
+LastEditTime: 2023-05-12 12:47:49
+FilePath: \esp32_projects\my_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
@@ -17,6 +17,7 @@ import os
 import network
 import time
 import ujson
+import gc
 #import ulogging as logging
 #logging.basicConfig(level=logging.INFO)
 #log = logging.getLogger('app')
@@ -28,7 +29,7 @@ import ujson
 """
 
 
-class WiFiUtils:
+class WiFiUtil:
 
     '''
     description: 初始化
@@ -373,3 +374,48 @@ class MultiThreadUtil:
                 finally_func()
 
  
+class MemoryUtil:
+    def __init__(self):
+        self.start_free = 0
+        self.start_alloc = 0
+    
+    def measure_memory(self):
+        """
+        检测当前的内存使用情况
+        """
+        gc.collect()
+        self.start_free = gc.mem_free()
+        self.start_alloc = gc.mem_alloc()
+        print("Free memory: {} bytes".format(self.start_free))
+        print("Allocated memory: {} bytes".format(self.start_alloc))
+    
+    def find_largest_objects(self, num_objects):
+        """
+        查找并打印占用内存最大的对象
+        """
+        objs = gc.get_objects()
+        objs.sort(key=lambda obj: -sys.getsizeof(obj))
+        print("Top {} largest objects:".format(num_objects))
+        for i in range(num_objects):
+            obj = objs[i]
+            size = sys.getsizeof(obj)
+            print("Object {}: size={} bytes".format(i + 1, size))
+    
+    def collect_garbage(self):
+        """
+        执行垃圾回收，释放不再使用的内存
+        """
+        gc.collect()
+        print("Garbage collection completed.")
+    
+    def memory_diff(self):
+        """
+        检测内存变化情况
+        """
+        end_free = gc.mem_free()
+        end_alloc = gc.mem_alloc()
+        diff_free = end_free - self.start_free
+        diff_alloc = end_alloc - self.start_alloc
+        print("Memory difference:")
+        print("Free memory: {} bytes".format(diff_free))
+        print("Allocated memory: {} bytes".format(diff_alloc))

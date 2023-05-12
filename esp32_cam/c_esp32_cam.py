@@ -1,3 +1,13 @@
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-05-11 22:03:16
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-05-11 23:48:12
+FilePath: \esp32_projects\esp32_cam\c_esp32_cam.py
+Description: 
+
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+'''
 import camera
 from c_utils import FileUtil,WiFiUtils
 import socket
@@ -76,7 +86,7 @@ class ESP32Cam:
         # socket UDP 的创建
         s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM,0)
 
-    def live_streaming_of_camera_feed(self,server_ip:str,server_port:int):
+    def live_streaming_of_camera_feed(self,server_ip : str,server_port:int):
         # 初始化WiFi
         wifi = WiFiUtils()
         wifi.do_connect(WIFI_SSID, WIFI_PASSWORD)

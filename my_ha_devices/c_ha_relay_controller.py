@@ -191,14 +191,14 @@ class HARelayController():
             self.relay.off()
 
     def do_work(self):
-        while True:
-            try:
+        try:
+            while True:
                 # self.mqtt_client.check_msg()
                 self.mqtt_client.check_msg()
                 # 控制检测MQTT的频率
                 time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
-            except Exception as e:
-                print("Exception: {}".format(e))
+        except Exception as e:
+            print("Exception: {}".format(e))
 
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work())

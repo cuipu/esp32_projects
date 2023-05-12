@@ -2,14 +2,14 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-05 23:03:28
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-10 18:16:14
-FilePath: \Demo\my_ha_devices\01test.py
+LastEditTime: 2023-05-12 12:48:42
+FilePath: \esp32_projects\my_ha_devices\01test.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
 '''
 import c_devices
-from c_utils import MultiThreadUtil,WiFiUtils
+from c_utils import MultiThreadUtil,WiFiUtil
 import c_home_assistant_devices
 import time
 import _thread
@@ -43,7 +43,7 @@ def mqtt_callback(topic, msg):
         print('继电器关闭')
 
 def test_ha_mqtt():
-    wifi = WiFiUtils()
+    wifi = WiFiUtil()
     wifi.do_connect(WIFI_NAME, WIFI_PASSWORD)
     
     # 初始化继电器控制引脚
@@ -73,6 +73,7 @@ def home_assistant_device_test():
     #ha_temperature_sensor = c_home_assistant_devices.HATemperatureSensor()
     #ha_temperature_sensor.start_device()
     switch = c_home_assistant_devices.HASwitchDevice()
+    switch.init()
     switch.start_device()
    
 
@@ -155,7 +156,7 @@ class TestHaMqtt:
         #self.relay.value(RELAY_OFF)  # 初始状态为关闭
         self.relay = c_devices.Relay(RELAY_PIN)
 
-        wifi = WiFiUtils()
+        wifi = WiFiUtil()
         wifi.do_connect(WIFI_NAME, WIFI_PASSWORD)
 
         # 连接MQTT代理服务器
@@ -188,10 +189,11 @@ class TestHaMqtt:
             time.sleep(0.5)
 
 def main():
-    #home_assistant_device_test()
-    test_ha = TestHaMqtt()
+    home_assistant_device_test()
 
-    test_ha.test_ha_mqtt()
+    #test_ha = TestHaMqtt()
+
+    #test_ha.test_ha_mqtt()
 
 
 if __name__ == "__main__":

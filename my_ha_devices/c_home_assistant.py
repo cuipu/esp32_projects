@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-11 22:17:36
+LastEditTime: 2023-05-12 15:01:29
 FilePath: \esp32_projects\my_ha_devices\c_home_assistant.py
 Description: 
 
@@ -10,7 +10,7 @@ Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 '''
 import time
 import ujson
-from c_utils import FileUtil, WiFiUtils, MultiThreadUtil
+from c_utils import FileUtil, WiFiUtil, MultiThreadUtil
 from umqttsimple import MQTTClient
 import config
 
@@ -26,7 +26,11 @@ MQTT_SERVER = '192.168.2.80'
 MQTT_PORT = 1883
 MQTT_USER = 'test'
 MQTT_PASSWORD = '1234560.'
-MQTT_KEEPALIVE = 60
+
+# 设置客户端与服务器之间的保持活动时间间隔
+# 默认情况下，MQTT_KEEPALIVE 的值通常设置为 60 秒。这意味着客户端每隔 60 秒发送一个心跳包给服务器，以确保连接保持活动状态。
+# 可以根据需要进行调整，但需要注意保持活动时间间隔不要太长，以避免无效的连接保持和资源浪费，同时也要考虑网络环境和服务器设置的限制。
+MQTT_KEEPALIVE = 0
 
 '''
 class IHomeAssistant():
@@ -133,7 +137,7 @@ class AbstractHomeAssistantDevice():
         self.wifi_name = WIFI_NAME
         self.wifi_password = WIFI_PASSWORD
 
-        self.wifi_utils = WiFiUtils()
+        self.wifi_utils = WiFiUtil()
         self.wifi_utils.do_connect(self.wifi_name, self.wifi_password)
 
     def init_mqtt(self):
@@ -149,8 +153,9 @@ class AbstractHomeAssistantDevice():
 
   
         # 建立一个MQTT客户端
-        self.mqtt_client = MQTTClient(self.homeassistant_device_name, self.mqtt_server,
-                                      self.mqtt_port, self.mqtt_user, self.mqtt_password, self.mqtt_keepalive)
+        self.mqtt_client = MQTTClient(client_id=self.homeassistant_device_name,server=self.mqtt_server,
+                                     port= self.mqtt_port,user= self.mqtt_user,password= self.mqtt_password,
+                                     keepalive= self.mqtt_keepalive)
         # 建立连接
         self.mqtt_client.connect()
 

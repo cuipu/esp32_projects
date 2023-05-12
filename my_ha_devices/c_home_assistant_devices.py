@@ -4,7 +4,9 @@ from c_utils import MultiThreadUtil
 from umqttsimple import MQTTClient
 import time
 import sys
+import uerrno
 import gc
+import micropython
 
 
 HOMEASSISTANT_DEVICE_NAME = 'esp32-tepmerature'
@@ -44,7 +46,7 @@ RELAY_ON_TIME = 10
 #MQTT_COMMAND_TOPIC = 'HA-esp32-relay/switch/set'
 #MQTT_STATE_TOPIC='HA-esp32-relay/switch/state'
 
-
+THRESHOLD_MEMORY = 1024
 
 class HATemperatureSensor(HomeAssistantSensorDevice):
     def __init__(self):
@@ -85,14 +87,21 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
         # print(topic, msg)
 
     def do_work(self):
-        while True:
-            device, temperature = self.ds18b20_temperature_sensor.collect_temperature_result()
-            self.do_mqtt_publish_device_msg(str(temperature))
-            self.esp32160lcd.show_msg("temperature: ", str(temperature))
-            if temperature > OVER_WARINING_TEMPERATURE:
-                self.passive_buzzer.play_mario()
-            time.sleep(TEMPERATURE_SEND_MSG_FREQ)
-            self.esp32160lcd.clear_msg()
+        try:
+            while True:
+                device, temperature = self.ds18b20_temperature_sensor.collect_temperature_result()
+                self.do_mqtt_publish_device_msg(str(temperature))
+                self.esp32160lcd.show_msg("temperature: ", str(temperature))
+                if temperature > OVER_WARINING_TEMPERATURE:
+                    self.passive_buzzer.play_mario()
+                time.sleep(TEMPERATURE_SEND_MSG_FREQ)
+                self.esp32160lcd.clear_msg()
+        except MemoryError:
+                print("Memory error occurred. Restarting...")
+                sys.exit()
+        except Exception as e:
+                print(f"Exception occurred: {e}")
+                sys.exit()
 
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work())
@@ -129,8 +138,9 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def do_mqtt_subscribe_topic_and_set_callback(self):
         # 设置mqtt回调函数
         self.mqtt_client.set_callback(self.sub_callback)
-        # 设置mqtt订阅的主题
+        # 设置mqtt订阅的主题 HA-esp32-relay/switch/set
         self.mqtt_client.subscribe(self.command_topic)
+        #self.mqtt_client.subscribe('HA-esp32-relay/switch/set')
                     
 
     def sub_callback(self, topic, msg):
@@ -155,20 +165,35 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             self.relay.off()
 
     def do_work(self):
-        while True:
-            try:
+        try:
+            while True:
                 # TODO 如果注释掉这里，程序3分钟不会挂掉，不是内存溢出的问题，不是检测频率的问题
                 self.mqtt_client.check_msg()
                 # self.mqtt_client.wait_msg()
-                free_mem = gc.mem_free()
-                print("available memory {} bytes \n".format(free_mem))
+                #self.check_memory()  # 检查内存
+
                 # 获取详细的内存信息
                 # 执行垃圾回收
                 #gc.collect()
                 # 控制检测MQTT的频率
                 time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
-            except Exception as e:
-                print("Exception: {}".format(e))
+        except MemoryError:
+            print("Memory error occurred. Restarting...")
+        except OSError as e:
+            error_code = e.args[0]
+            error_name = uerrno.errorcode[error_code]
+            print("OSError:", error_name)
+        except KeyError as e:
+            error_code = e.args[0]
+            error_name = uerrno.errorcode[error_code]
+            print("KeyError:", error_n)
+        except Exception as e:
+            print(f"Exception occurred: {e}")
+            sys.print_exception(e)
+        finally:
+            print('system exit')
+            sys.exit()
+                
 
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work())
@@ -190,3 +215,10 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
                 self.homeassistant_switch_state_topic, "OFF")
             # 设置成低电平，防止反复触发
             self.infrared_motion_sensor.sensor_pin.value(0)
+
+    def check_memory(self):
+        free_mem = gc.mem_free()
+        print("Free memory:", free_mem)
+        if free_mem < THRESHOLD_MEMORY:
+            micropython.mem_info()
+            raise MemoryError("Low memory!")
