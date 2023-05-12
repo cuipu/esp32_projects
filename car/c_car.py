@@ -1,7 +1,8 @@
 from machine import Pin
 from c_devices import UltrasonicDistanceSensor
+from umqttsimple import MQTTClient
 import time
-
+import sys
 
 '''
 
@@ -16,20 +17,20 @@ import time
 '''
 
 # 左前轮电机
-LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1=
-LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2=
+LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1= 1
+LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2=1
 
 # 右前轮电机
-RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1=
-RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2=
+RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1=1
+RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2=1
 
 # 左后轮电机
-LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1=
-LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2=
+LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1=1
+LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2=1
 
 # 右后轮电机
-RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1=
-RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2=
+RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1=1
+RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2=1
 
 class Car:
     def __init__(self):
@@ -111,11 +112,19 @@ class Car:
         self.right_rear_wheel_motor_pin2.value(0) 
 
 
+
+# MQTT 服务器配置
+MQTTT_CLIENT_ID = 'esp32-car'
+MQTT_SERVER = '192.168.2.80'
+MQTT_PORT = 1883
+MQTT_USER = 'test'
+MQTT_PASSWORD = '1234560.'
+
 MQTT_COMMAND_TOPIC_CONTROL_CAR = 'control car'
 MQTT_CLIENT_CHECK_MSG_FREQ = 0.1
 
-TRIG_GPIO_NUM = 
-ECHO_GPIO_NUM = 
+TRIG_GPIO_NUM = 1
+ECHO_GPIO_NUM = 1
 
 # 刹车距离，单位 cm
 BRAKING_DISTANCE = 10
@@ -127,7 +136,7 @@ class CarController():
 
     def init_mqtt(self):
         # 连接MQTT代理服务器
-        self.mqtt_client = MQTTClient("esp32-test", MQTT_BROKER, port=MQTT_PORT,
+        self.mqtt_client = MQTTClient(MQTTT_CLIENT_ID, MQTT_SERVER, port=MQTT_PORT,
                                 user=MQTT_USER, password=MQTT_PASSWORD)
         self.mqtt_client.set_callback(self.mqtt_callback)
         self.mqtt_client.connect()
@@ -159,9 +168,16 @@ class CarController():
         pass
 
     def do_work(self):
-        while True:
-            if self.ultrasonic_distance_sensor.do_measure() < BRAKING_DISTANCE:
-                self.car.stop()
-            else
-                self.mqtt_client.check_msg()
-            time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
+        try:
+            while True:
+                if self.ultrasonic_distance_sensor.do_measure() < BRAKING_DISTANCE:
+                    self.car.stop()
+                else:
+                    self.mqtt_client.check_msg()
+                time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
+        except MemoryError:
+            print("Memory error occurred. Restarting...")
+        except Exception as e:
+            print(f"Exception occurred: {e}")
+        finally:
+            sys.exit()

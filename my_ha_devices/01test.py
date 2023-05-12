@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-05 23:03:28
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-12 12:48:42
+LastEditTime: 2023-05-12 15:55:43
 FilePath: \esp32_projects\my_ha_devices\01test.py
 Description: 
 

@@ -43,35 +43,33 @@ LIGHT_SENSOR_THRESHOLD = 4000
 
 RELAY_ON_TIME = 10
 
-#MQTT_COMMAND_TOPIC = 'HA-esp32-relay/switch/set'
-#MQTT_STATE_TOPIC='HA-esp32-relay/switch/state'
+# MQTT_COMMAND_TOPIC = 'HA-esp32-relay/switch/set'
+# MQTT_STATE_TOPIC='HA-esp32-relay/switch/state'
 
 THRESHOLD_MEMORY = 1024
 
+
 class HATemperatureSensor(HomeAssistantSensorDevice):
     def __init__(self):
-
+        super().__init__()
         self.ds18b20_temperature_sensor = None
         self.passive_buzzer = None
-        self.init()
-    
 
-    def init_device_info(self, homeassistant_device_name: str = None, homeassistant_device_sensor_name: str = None, 
-            homeassistant_device_sensor_type: str = None):
+    def init_device_info(self, homeassistant_device_name: str = None, homeassistant_device_sensor_name: str = None,
+                         homeassistant_device_sensor_type: str = None):
         global MQTT_COMMAND_TOPIC
-        #MQTT_COMMAND_TOPIC = self.command_topic
+        # MQTT_COMMAND_TOPIC = self.command_topic
 
         self.homeassistant_device_name = HOMEASSISTANT_DEVICE_NAME_SENSOR
         self.homeassistant_sensor_name = HOMEASSISTANT_SENSOR_NAME_TEMPERATURE
         self.homeassistant_sensor_type = HOMEASSISTANT_SENSOR_TYPE_TEMPERATURE
 
         self.passive_buzzer = PassiveBuzzer(PASSIVE_BUZZER_GPIO_NUM)
-        
+
         self.esp32160lcd = ESP32160lcd(
             ESP32160LCD_SDA_GPIO_NUM, ESP32160LCD_SCL_GPIO_NUM)
         self.ds18b20_temperature_sensor = Ds18b20TemperatureSensor(
             DS18B20_GPIO_NUM)
-
 
     def do_mqtt_subscribe_topic_and_set_callback(self):
         pass
@@ -97,11 +95,12 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
                 time.sleep(TEMPERATURE_SEND_MSG_FREQ)
                 self.esp32160lcd.clear_msg()
         except MemoryError:
-                print("Memory error occurred. Restarting...")
-                sys.exit()
+            print("Memory error occurred. Restarting...")
         except Exception as e:
-                print(f"Exception occurred: {e}")
-                sys.exit()
+            print(f"Exception occurred: {e}")
+        finally:
+            sys.exit()
+
 
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work())
@@ -112,11 +111,12 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
 
 class HASwitchDevice(HomeAssistantSwitchDevice):
     def __init__(self):
-       
-        self.relay = None
-        self.init()
+        super().__init__()
 
-    def init_device_info(self, homeassistant_device_name: str = None, homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
+        self.relay = None
+
+    def init_device_info(self, homeassistant_device_name: str = None,
+                         homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
 
         self.homeassistant_device_name = HOMEASSISTANT_DEVICE_NAME_SWITCH
         self.homeassistant_switch_name = HOMEASSISTANT_SWITCH_NAME_RELAY_CONTROLLER
@@ -127,21 +127,23 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
         self.relay = Relay(RELAY_GPIO_NUM)
 
         # 人体传感器
-        self.infrared_motion_sensor = InfraredMotionSensor(INFRARED_MOTION_SENSOR_GPIO_NUM)
+        self.infrared_motion_sensor = InfraredMotionSensor(
+            INFRARED_MOTION_SENSOR_GPIO_NUM)
         # 设置回调函数
-        self.infrared_motion_sensor.set_hander(self.infrared_motion_sensor_hander)
+        self.infrared_motion_sensor.set_hander(
+            self.infrared_motion_sensor_hander)
 
         # 光敏传感器
-        self.light_sensor = LightSensor(Light_Sensor_ANALOG_GPIO_NUM,Light_Sensor_DIGITAL_GPIO_NUM)
-
+        self.light_sensor = LightSensor(
+            Light_Sensor_ANALOG_GPIO_NUM,
+            Light_Sensor_DIGITAL_GPIO_NUM)
 
     def do_mqtt_subscribe_topic_and_set_callback(self):
         # 设置mqtt回调函数
         self.mqtt_client.set_callback(self.sub_callback)
         # 设置mqtt订阅的主题 HA-esp32-relay/switch/set
         self.mqtt_client.subscribe(self.command_topic)
-        #self.mqtt_client.subscribe('HA-esp32-relay/switch/set')
-                    
+        # self.mqtt_client.subscribe('HA-esp32-relay/switch/set')
 
     def sub_callback(self, topic, msg):
         if topic == self.command_topic.encode():
@@ -167,14 +169,7 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def do_work(self):
         try:
             while True:
-                # TODO 如果注释掉这里，程序3分钟不会挂掉，不是内存溢出的问题，不是检测频率的问题
                 self.mqtt_client.check_msg()
-                # self.mqtt_client.wait_msg()
-                #self.check_memory()  # 检查内存
-
-                # 获取详细的内存信息
-                # 执行垃圾回收
-                #gc.collect()
                 # 控制检测MQTT的频率
                 time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
         except MemoryError:
@@ -193,7 +188,6 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
         finally:
             print('system exit')
             sys.exit()
-                
 
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work())
@@ -201,10 +195,10 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def start_device(self):
         self.do_work()
 
-    def infrared_motion_sensor_hander(self,*arges):
+    def infrared_motion_sensor_hander(self, *arges):
         # 判断亮度是否需要开灯
         light_analog_value = self.light_sensor.read_light_analog()
-        if (light_analog_value>LIGHT_SENSOR_THRESHOLD):
+        if (light_analog_value > LIGHT_SENSOR_THRESHOLD):
             # 开灯
             self.relay.on()
             self.mqtt_client.publish(

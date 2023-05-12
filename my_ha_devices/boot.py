@@ -20,18 +20,22 @@ import sys
 
 def main():
     try:
-        # ha_temperature_sensor = HATemperatureSensor()
-        # ha_temperature_sensor.multi_thread_start_device()
+        ha_temperature_sensor = HATemperatureSensor()
+        ha_temperature_sensor.start_device()
 
-        ha_relay = HASwitchDevice()
-        ha_relay.start_device()
+        #ha_relay = HASwitchDevice()
+        #ha_relay.start_device()
+    except MemoryError:
+        print("Memory error occurred. Restarting...")
     except OSError as e:
         error_code = e.args[0]
         error_name = uerrno.errorcode[error_code]
         print("OSError:", error_name)
     except Exception as e:
-        print(e)
+        print(f"Exception occurred: {e}")
+        sys.print_exception(e)
     finally:
+        print('system exit')
         sys.exit()
 
 

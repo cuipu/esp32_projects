@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-29 22:23:22
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-11 17:40:34
-FilePath: \Demo\my_ha_devices\c_devices.py
+LastEditTime: 2023-05-12 16:11:50
+FilePath: \esp32_projects\my_ha_devices\c_devices.py
 Description: 有源蜂鸣器，带白纸的，内部有震荡源
 
 硬件：

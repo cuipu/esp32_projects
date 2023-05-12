@@ -2,17 +2,17 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-12 15:01:29
+LastEditTime: 2023-05-12 16:15:11
 FilePath: \esp32_projects\my_ha_devices\c_home_assistant.py
-Description: 
+Description:
 
-Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 '''
 import time
 import ujson
 from c_utils import FileUtil, WiFiUtil, MultiThreadUtil
 from umqttsimple import MQTTClient
-import config
+# import config
 
 # 内存不够，不从文件加载配置
 ESP32_CONFIT = './esp32_config.txt'
@@ -57,6 +57,7 @@ class IHomeAssistant():
         pass
 '''
 
+
 class AbstractHomeAssistantDevice():
     def __init__(self):
 
@@ -65,7 +66,7 @@ class AbstractHomeAssistantDevice():
         self.mqtt_user = None
         self.mqtt_password = None
         self.mqtt_keepalive = None
-        
+
         self.mqtt_client = None
 
         self.wifi_name = None
@@ -74,7 +75,6 @@ class AbstractHomeAssistantDevice():
 
         self.multi_thread_util = MultiThreadUtil()
 
-        
         self.init()
 
     def init(self):
@@ -105,11 +105,12 @@ class AbstractHomeAssistantDevice():
         self.device_config_json = ujson.loads(self.device_config_str)
         print('device_config_json : \n', self.device_config_str)
         '''
-        #wifi_ssid = config.wifi_config["ssid"]
-        #wifi_password = config.wifi_config["password"]
+        # wifi_ssid = config.wifi_config["ssid"]
+        # wifi_password = config.wifi_config["password"]
         pass
-    
-    def init_device_info(self, homeassistant_device_name: str = None, homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
+
+    def init_device_info(self, homeassistant_device_name: str = None,
+                         homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
         '''
         description: 初始化设备信息，可以传入，也可以从数据源配置中配置
         return {*}
@@ -151,11 +152,10 @@ class AbstractHomeAssistantDevice():
         self.mqtt_password = MQTT_PASSWORD
         self.mqtt_keepalive = MQTT_KEEPALIVE
 
-  
         # 建立一个MQTT客户端
-        self.mqtt_client = MQTTClient(client_id=self.homeassistant_device_name,server=self.mqtt_server,
-                                     port= self.mqtt_port,user= self.mqtt_user,password= self.mqtt_password,
-                                     keepalive= self.mqtt_keepalive)
+        self.mqtt_client = MQTTClient(client_id=self.homeassistant_device_name, server=self.mqtt_server,
+                                      port=self.mqtt_port, user=self.mqtt_user, password=self.mqtt_password,
+                                      keepalive=self.mqtt_keepalive)
         # 建立连接
         self.mqtt_client.connect()
 
@@ -202,17 +202,17 @@ Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
 LastEditTime: 2023-05-05 19:42:17
-FilePath: \Demo\c_home_assistant.py
+FilePath: \\Demo\\c_home_assistant.py
 Description: HA传感器配置
 
-Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 '''
 
 
 class HomeAssistantSensorDevice(AbstractHomeAssistantDevice):
 
     def __init__(self):
-
+        super().__init__()
         self.homeassistant_device_name = None
         self.homeassistant_sensor_name = None
         self.homeassistant_sensor_type = None
@@ -252,13 +252,13 @@ class HomeAssistantSensorDevice(AbstractHomeAssistantDevice):
 
         self.send_content = ujson.dumps(self.homeassistant_config_content)
         # 告诉homeassistant服务器，有个新的设备实体要注册
-        #self.mqtt_client.publish(
+        # self.mqtt_client.publish(
         #    self.homeassistant_sensor_config_topic, self.send_content)
-        
+
     def register_device_to_ha(self):
-            # 告诉homeassistant服务器，有个新的设备实体要注册
-            self.mqtt_client.publish(
-                self.homeassistant_sensor_config_topic, self.send_content)
+        # 告诉homeassistant服务器，有个新的设备实体要注册
+        self.mqtt_client.publish(
+            self.homeassistant_sensor_config_topic, self.send_content)
 
 
 '''
@@ -266,18 +266,18 @@ Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
 LastEditTime: 2023-05-05 19:42:17
-FilePath: \Demo\c_home_assistant.py
+FilePath: \\Demo\\c_home_assistant.py
 Description: HA控制器设备配置
 
-Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 
 详细配置参考：
 https://www.home-assistant.io/integrations/mqtt/
 
 
-When using Home Assistant’s YAML editor for formatting JSON you should take special care if payload contains template content. 
-Home Assistant will force you in to the YAML editor and will treat your definition as a template. 
-Make sure you escape the template blocks as like in the example below. 
+When using Home Assistant’s YAML editor for formatting JSON you should take special care if payload contains template content.
+Home Assistant will force you in to the YAML editor and will treat your definition as a template.
+Make sure you escape the template blocks as like in the example below.
 Home Assistant will convert the result to a string and will pass it to the MQTT publish service.
 
 service: mqtt.publish
@@ -310,9 +310,10 @@ retain: true
 class HomeAssistantSwitchDevice(AbstractHomeAssistantDevice):
 
     def __init__(self):
+        super().__init__()
         self.homeassistant_device_name = None
         self.homeassistant_switch_name = None
-        self.homeassistant_switch_type = None 
+        self.homeassistant_switch_type = None
 
         # HA接受设备数据的topic
         self.homeassistant_switch_state_topic = None
@@ -353,10 +354,10 @@ class HomeAssistantSwitchDevice(AbstractHomeAssistantDevice):
 
         self.send_content = ujson.dumps(self.homeassistant_config_content)
 
-        print('>>>{}<<<\n>>>{}<<<\n'.format(self.command_topic, 
-        self.homeassistant_switch_state_topic))
+        print('>>>{}<<<\n>>>{}<<<\n'.format(self.command_topic,
+                                            self.homeassistant_switch_state_topic))
 
     def register_device_to_ha(self):
-            # 告诉homeassistant服务器，有个新的设备实体要注册
-            self.mqtt_client.publish(
-                self.homeassistant_switch_config_topic, self.send_content)
+        # 告诉homeassistant服务器，有个新的设备实体要注册
+        self.mqtt_client.publish(
+            self.homeassistant_switch_config_topic, self.send_content)
