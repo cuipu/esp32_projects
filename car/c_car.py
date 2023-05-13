@@ -1,6 +1,4 @@
 from machine import Pin
-from c_devices import UltrasonicDistanceSensor
-from umqttsimple import MQTTClient
 import time
 import sys
 
@@ -17,20 +15,20 @@ import sys
 '''
 
 # 左前轮电机
-LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1= 1
-LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2=1
+LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1= 27
+LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2=14
 
 # 右前轮电机
-RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1=1
-RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2=1
+RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1=26
+RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2=25
 
 # 左后轮电机
-LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1=1
-LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2=1
+LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1=17
+LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2=5
 
 # 右后轮电机
-RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1=1
-RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2=1
+RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1=16
+RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2=4
 
 class Car:
     def __init__(self):
@@ -46,6 +44,32 @@ class Car:
         self.right_rear_wheel_motor_pin1 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
         self.right_rear_wheel_motor_pin2 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
 
+def move_forward(self):
+        self.left_front_wheel_motor_pin1.value(1)
+        self.left_front_wheel_motor_pin2.value(0)
+
+        self.right_front_wheel_motor_pin1.value(1) 
+        self.right_front_wheel_motor_pin2.value(0) 
+
+        self.left_rear_wheel_motor_pin1.value(1) 
+        self.left_rear_wheel_motor_pin2.value(0) 
+
+        self.right_rear_wheel_motor_pin1.value(1) 
+        self.right_rear_wheel_motor_pin2.value(0) 
+
+    def move_backward(self):
+        self.left_front_wheel_motor_pin1.value(0)
+        self.left_front_wheel_motor_pin2.value(1)
+
+        self.right_front_wheel_motor_pin1.value(0) 
+        self.right_front_wheel_motor_pin2.value(1) 
+
+        self.left_rear_wheel_motor_pin1.value(0) 
+        self.left_rear_wheel_motor_pin2.value(1) 
+
+        self.right_rear_wheel_motor_pin1.value(0)
+        self.right_rear_wheel_motor_pin2.value(1)
+        
     def turn_left(self):
         self.left_front_wheel_motor_pin1.value(1)
         self.left_front_wheel_motor_pin2.value(0)
@@ -72,31 +96,7 @@ class Car:
         self.right_rear_wheel_motor_pin1.value(0)
         self.right_rear_wheel_motor_pin2.value(1) 
 
-    def move_forward(self):
-        self.left_front_wheel_motor_pin1.value(0)
-        self.left_front_wheel_motor_pin2.value(0)
-
-        self.right_front_wheel_motor_pin1.value(0) 
-        self.right_front_wheel_motor_pin2.value(0) 
-
-        self.left_rear_wheel_motor_pin1.value(0) 
-        self.left_rear_wheel_motor_pin2.value(0) 
-
-        self.right_rear_wheel_motor_pin1.value(0)
-        self.right_rear_wheel_motor_pin2.value(0) 
-
-    def move_backward(self):
-        self.left_front_wheel_motor_pin1.value(1)
-        self.left_front_wheel_motor_pin2.value(0)
-
-        self.right_front_wheel_motor_pin1.value(1) 
-        self.right_front_wheel_motor_pin2.value(0) 
-
-        self.left_rear_wheel_motor_pin1.value(1) 
-        self.left_rear_wheel_motor_pin2.value(0) 
-
-        self.right_rear_wheel_motor_pin1.value(1)
-        self.right_rear_wheel_motor_pin2.value(0) 
+    
 
     def stop(self):
         self.left_front_wheel_motor_pin1.value(0)
@@ -181,3 +181,39 @@ class CarController():
             print(f"Exception occurred: {e}")
         finally:
             sys.exit()
+
+
+def car_test():
+    car = Car()
+    
+    #car.left_front_wheel_motor_pin1.value(0)
+    #car.left_front_wheel_motor_pin2.value(0)
+
+    #car.right_front_wheel_motor_pin1.value(0) 
+    #car.right_front_wheel_motor_pin2.value(0) 
+
+    car.left_rear_wheel_motor_pin1.value(0) 
+    car.left_rear_wheel_motor_pin2.value(0) 
+
+    car.right_rear_wheel_motor_pin1.value(1)
+    car.right_rear_wheel_motor_pin2.value(0) 
+
+    # 有问题
+    car.move_forward()
+    time.sleep(2)
+    car.move_backward()
+    time.sleep(2)
+    car.turn_left()
+    time.sleep(2)
+    car.turn_right()
+    time.sleep(2)
+    
+    car.stop()
+
+def main():
+    car_test()
+
+
+if __name__ == "__main__":
+    main()
+
