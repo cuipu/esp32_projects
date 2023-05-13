@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-12 16:15:11
+LastEditTime: 2023-05-13 16:38:37
 FilePath: \esp32_projects\my_ha_devices\c_home_assistant.py
 Description:
 
@@ -76,6 +76,7 @@ class AbstractHomeAssistantDevice():
         self.multi_thread_util = MultiThreadUtil()
 
         self.init()
+        
 
     def init(self):
         '''
@@ -221,6 +222,7 @@ class HomeAssistantSensorDevice(AbstractHomeAssistantDevice):
         self.homeassistant_sensor_state_topic = None
         self.command_topic = None
 
+
     def init_ha_device_config_content(self):
 
         self.homeassistant_sensor_state_topic = "HA-%s/%s/state" % (
@@ -320,6 +322,8 @@ class HomeAssistantSwitchDevice(AbstractHomeAssistantDevice):
 
         # HA向设备发送数据的topic
         self.command_topic = None
+
+        
 
     def init_ha_device_config_content(self):
 

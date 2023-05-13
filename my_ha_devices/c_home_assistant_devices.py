@@ -52,8 +52,11 @@ THRESHOLD_MEMORY = 1024
 class HATemperatureSensor(HomeAssistantSensorDevice):
     def __init__(self):
         super().__init__()
+
         self.ds18b20_temperature_sensor = None
         self.passive_buzzer = None
+
+        self.init()
 
     def init_device_info(self, homeassistant_device_name: str = None, homeassistant_device_sensor_name: str = None,
                          homeassistant_device_sensor_type: str = None):
@@ -103,7 +106,7 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
 
 
     def multi_thread_start_device(self):
-        self.multi_thread_util.start_new_thread(self.do_work())
+        self.multi_thread_util.start_new_thread(self.do_work)
 
     def start_device(self):
         self.do_work()
@@ -114,6 +117,8 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
         super().__init__()
 
         self.relay = None
+
+        self.init()
 
     def init_device_info(self, homeassistant_device_name: str = None,
                          homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
@@ -190,7 +195,7 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             sys.exit()
 
     def multi_thread_start_device(self):
-        self.multi_thread_util.start_new_thread(self.do_work())
+        self.multi_thread_util.start_new_thread(self.do_work)
 
     def start_device(self):
         self.do_work()
@@ -216,3 +221,27 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
         if free_mem < THRESHOLD_MEMORY:
             micropython.mem_info()
             raise MemoryError("Low memory!")
+
+def main():
+    try:
+        ha_temperature_sensor = HATemperatureSensor()
+        ha_temperature_sensor.start_device()
+
+        #ha_relay = HASwitchDevice()
+        #ha_relay.start_device()
+    except MemoryError:
+        print("Memory error occurred. Restarting...")
+    except OSError as e:
+        error_code = e.args[0]
+        error_name = uerrno.errorcode[error_code]
+        print("OSError:", error_name)
+    except Exception as e:
+        print(f"Exception occurred: {e}")
+        sys.print_exception(e)
+    finally:
+        print('system exit')
+        sys.exit()
+
+
+if __name__ == "__main__":
+    main()

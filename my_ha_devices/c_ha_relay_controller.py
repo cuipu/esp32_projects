@@ -93,7 +93,7 @@ class HARelayController():
   
         # 建立一个MQTT客户端
         self.mqtt_client = MQTTClient(self.homeassistant_device_name, self.mqtt_server,
-                                      self.mqtt_port, self.mqtt_user, self.mqtt_password, self.mqtt_keepalive)
+                                      self.mqtt_port, self.mqtt_user, self.mqtt_password)
         # 建立连接
         self.mqtt_client.connect()
 
