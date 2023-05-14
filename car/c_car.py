@@ -1,3 +1,6 @@
+from c_utils import WiFiUtil
+from c_devices import Relay
+from umqttsimple import MQTTClient
 from machine import Pin
 import time
 import sys
@@ -44,7 +47,7 @@ class Car:
         self.right_rear_wheel_motor_pin1 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
         self.right_rear_wheel_motor_pin2 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
 
-def move_forward(self):
+    def move_forward(self):
         self.left_front_wheel_motor_pin1.value(1)
         self.left_front_wheel_motor_pin2.value(0)
 
@@ -55,7 +58,7 @@ def move_forward(self):
         self.left_rear_wheel_motor_pin2.value(0) 
 
         self.right_rear_wheel_motor_pin1.value(1) 
-        self.right_rear_wheel_motor_pin2.value(0) 
+        self.right_rear_wheel_motor_pin2.value(0)
 
     def move_backward(self):
         self.left_front_wheel_motor_pin1.value(0)
@@ -71,6 +74,19 @@ def move_forward(self):
         self.right_rear_wheel_motor_pin2.value(1)
         
     def turn_left(self):
+        self.left_front_wheel_motor_pin1.value(0)
+        self.left_front_wheel_motor_pin2.value(1)
+
+        self.right_front_wheel_motor_pin1.value(1) 
+        self.right_front_wheel_motor_pin2.value(0) 
+
+        self.left_rear_wheel_motor_pin1.value(1) 
+        self.left_rear_wheel_motor_pin2.value(0) 
+
+        self.right_rear_wheel_motor_pin1.value(0)
+        self.right_rear_wheel_motor_pin2.value(1) 
+        
+    def turn_right(self):
         self.left_front_wheel_motor_pin1.value(1)
         self.left_front_wheel_motor_pin2.value(0)
 
@@ -83,20 +99,6 @@ def move_forward(self):
         self.right_rear_wheel_motor_pin1.value(1)
         self.right_rear_wheel_motor_pin2.value(0) 
 
-    def turn_right(self):
-        self.left_front_wheel_motor_pin1.value(0)
-        self.left_front_wheel_motor_pin2.value(1)
-
-        self.right_front_wheel_motor_pin1.value(1) 
-        self.right_front_wheel_motor_pin2.value(0) 
-
-        self.left_rear_wheel_motor_pin1.value(1) 
-        self.left_rear_wheel_motor_pin2.value(0) 
-
-        self.right_rear_wheel_motor_pin1.value(0)
-        self.right_rear_wheel_motor_pin2.value(1) 
-
-    
 
     def stop(self):
         self.left_front_wheel_motor_pin1.value(0)
@@ -110,8 +112,11 @@ def move_forward(self):
 
         self.right_rear_wheel_motor_pin1.value(0)
         self.right_rear_wheel_motor_pin2.value(0) 
+    
 
-
+# WiFi配置
+WIFI_NAME = 'TP-LINK_502_2.4G'
+WIFI_PASSWORD = '1234567890...'
 
 # MQTT 服务器配置
 MQTTT_CLIENT_ID = 'esp32-car'
@@ -123,6 +128,8 @@ MQTT_PASSWORD = '1234560.'
 MQTT_COMMAND_TOPIC_CONTROL_CAR = 'control car'
 MQTT_CLIENT_CHECK_MSG_FREQ = 0.1
 
+RELAY_GPIO_NUM = 33
+
 TRIG_GPIO_NUM = 1
 ECHO_GPIO_NUM = 1
 
@@ -132,7 +139,16 @@ class CarController():
     def __init__(self):
         self.mqtt_client = None
         self.car = Car()
-        self.ultrasonic_distance_sensor = UltrasonicDistanceSensor(TRIG_GPIO_NUM,ECHO_GPIO_NUM)
+        #self.ultrasonic_distance_sensor = UltrasonicDistanceSensor(TRIG_GPIO_NUM,ECHO_GPIO_NUM)
+        self.wifi_util = None
+        self.relay = None
+
+        self.init_wifi()
+        self.init_mqtt()
+
+    def init_wifi(self):
+        self.wifi_util = WiFiUtil()
+        self.wifi_util.do_connect(WIFI_NAME,WIFI_PASSWORD)
 
     def init_mqtt(self):
         # 连接MQTT代理服务器
@@ -143,22 +159,38 @@ class CarController():
         self.mqtt_client.subscribe(MQTT_COMMAND_TOPIC_CONTROL_CAR)
         print('MQTT connected')
 
+    def init_device(self):
+        self.relay = Relay(RELAY_GPIO_NUM)
+
      # MQTT消息处理函数
     def mqtt_callback(self,topic, msg):
         print('topic: ' ,topic)
         if topic == MQTT_COMMAND_TOPIC_CONTROL_CAR.encode():
-            if 'f' == msg:
+            if b'f' == msg:
                 self.car.move_forward()
-            elif 'b'== msg:
-                self.car.move_backward()
-            elif 'l' == msg:
-                self.car.turn_left()
-            elif 'r' == msg:
-                self.car.turn_right()
-            elif 's' == msg:
+                time.sleep(1)
                 self.car.stop()
+            elif b'b'== msg:
+                self.car.move_backward()
+                time.sleep(1)
+                self.car.stop()
+            elif b'l' == msg:
+                self.car.turn_left()
+                time.sleep(1)
+                self.car.stop()
+            elif b'r' == msg:
+                self.car.turn_right()
+                time.sleep(1)
+                self.car.stop()
+            elif b's' == msg:
+                self.car.stop()
+            elif b'on' == msg:
+                self.relay.on()
+            elif b'off' == msg:
+                self.relay.off()
             else:
                 self.car.stop()
+
 
     def do_distance_monitoring(self):
         '''
@@ -170,10 +202,10 @@ class CarController():
     def do_work(self):
         try:
             while True:
-                if self.ultrasonic_distance_sensor.do_measure() < BRAKING_DISTANCE:
-                    self.car.stop()
-                else:
-                    self.mqtt_client.check_msg()
+                #if self.ultrasonic_distance_sensor.do_measure() < BRAKING_DISTANCE:
+                #    self.car.stop()
+                #else:
+                self.mqtt_client.check_msg()
                 time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
         except MemoryError:
             print("Memory error occurred. Restarting...")
@@ -184,19 +216,8 @@ class CarController():
 
 
 def car_test():
+    '''
     car = Car()
-    
-    #car.left_front_wheel_motor_pin1.value(0)
-    #car.left_front_wheel_motor_pin2.value(0)
-
-    #car.right_front_wheel_motor_pin1.value(0) 
-    #car.right_front_wheel_motor_pin2.value(0) 
-
-    car.left_rear_wheel_motor_pin1.value(0) 
-    car.left_rear_wheel_motor_pin2.value(0) 
-
-    car.right_rear_wheel_motor_pin1.value(1)
-    car.right_rear_wheel_motor_pin2.value(0) 
 
     # 有问题
     car.move_forward()
@@ -209,11 +230,15 @@ def car_test():
     time.sleep(2)
     
     car.stop()
-
+    '''
+    car_controller = CarController()
+    car_controller.do_work()
+    
 def main():
     car_test()
 
 
 if __name__ == "__main__":
     main()
+
 
