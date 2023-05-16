@@ -1,5 +1,15 @@
 '''
 Author: cuipu g050505@gmail.com
+Date: 2023-05-11 22:03:16
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-05-14 22:01:48
+FilePath: \esp32_projects\my_ha_devices\c_devices.py
+Description: 
+
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+'''
+'''
+Author: cuipu g050505@gmail.com
 Date: 2023-04-29 22:23:22
 LastEditors: cuipu g050505@gmail.com
 LastEditTime: 2023-05-13 10:59:47

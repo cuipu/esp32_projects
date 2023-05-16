@@ -11,107 +11,188 @@ import sys
 右前轮：Right front wheel
 左后轮：Left rear wheel
 右后轮：Right rear wheel
-前进：Forward
-后退：Backward
-左转：Left turn
-右转：Right turn
 '''
 
 # 左前轮电机
-LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1= 27
-LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2=14
+LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1 = 27
+LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2 = 14
 
 # 右前轮电机
-RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1=26
-RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2=25
+RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1 = 26
+RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2 = 25
 
 # 左后轮电机
-LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1=17
-LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2=5
+LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1 = 17
+LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2 = 5
 
 # 右后轮电机
-RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1=16
-RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2=4
+RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1 = 16
+RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2 = 4
 
 class Car:
     def __init__(self):
-        self.left_front_wheel_motor_pin1 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.left_front_wheel_motor_pin2 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
+        self.left_front_wheel_motor_a1_pin1 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
+        self.left_front_wheel_motor_a1_pin2 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
 
-        self.right_front_wheel_motor_pin1 = Pin(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.right_front_wheel_motor_pin2 = Pin(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
+        self.right_front_wheel_motor_b1_pin1 = Pin(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
+        self.right_front_wheel_motor_b1_pin2 = Pin(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
 
-        self.left_rear_wheel_motor_pin1 = Pin(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.left_rear_wheel_motor_pin2 = Pin(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
+        self.left_rear_wheel_motor_b2_pin1 = Pin(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
+        self.left_rear_wheel_motor_b2_pin2 = Pin(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
 
-        self.right_rear_wheel_motor_pin1 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.right_rear_wheel_motor_pin2 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
+        self.right_rear_wheel_motor_a2_pin1 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
+        self.right_rear_wheel_motor_a2_pin2 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
+
+        self.relay = None
+
+        self.init_device()
+    def init_device(self):
+        self.relay = Relay(RELAY_GPIO_NUM)
+        self.relay.off()
 
     def move_forward(self):
-        self.left_front_wheel_motor_pin1.value(1)
-        self.left_front_wheel_motor_pin2.value(0)
+        self.left_front_wheel_motor_a1_pin1.value(1)
+        self.left_front_wheel_motor_a1_pin2.value(0)
 
-        self.right_front_wheel_motor_pin1.value(1) 
-        self.right_front_wheel_motor_pin2.value(0) 
+        self.right_front_wheel_motor_b1_pin1.value(1) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
 
-        self.left_rear_wheel_motor_pin1.value(1) 
-        self.left_rear_wheel_motor_pin2.value(0) 
+        self.left_rear_wheel_motor_b2_pin1.value(1) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
 
-        self.right_rear_wheel_motor_pin1.value(1) 
-        self.right_rear_wheel_motor_pin2.value(0)
+        self.right_rear_wheel_motor_a2_pin1.value(1) 
+        self.right_rear_wheel_motor_a2_pin2.value(0)
 
     def move_backward(self):
-        self.left_front_wheel_motor_pin1.value(0)
-        self.left_front_wheel_motor_pin2.value(1)
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(1)
 
-        self.right_front_wheel_motor_pin1.value(0) 
-        self.right_front_wheel_motor_pin2.value(1) 
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(1) 
 
-        self.left_rear_wheel_motor_pin1.value(0) 
-        self.left_rear_wheel_motor_pin2.value(1) 
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(1) 
 
-        self.right_rear_wheel_motor_pin1.value(0)
-        self.right_rear_wheel_motor_pin2.value(1)
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(1)
         
-    def turn_left(self):
-        self.left_front_wheel_motor_pin1.value(0)
-        self.left_front_wheel_motor_pin2.value(1)
+    def move_leftward(self):
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(1)
 
-        self.right_front_wheel_motor_pin1.value(1) 
-        self.right_front_wheel_motor_pin2.value(0) 
+        self.right_front_wheel_motor_b1_pin1.value(1) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
 
-        self.left_rear_wheel_motor_pin1.value(1) 
-        self.left_rear_wheel_motor_pin2.value(0) 
+        self.left_rear_wheel_motor_b2_pin1.value(1) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
 
-        self.right_rear_wheel_motor_pin1.value(0)
-        self.right_rear_wheel_motor_pin2.value(1) 
-        
-    def turn_right(self):
-        self.left_front_wheel_motor_pin1.value(1)
-        self.left_front_wheel_motor_pin2.value(0)
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(1) 
 
-        self.right_front_wheel_motor_pin1.value(0) 
-        self.right_front_wheel_motor_pin2.value(1) 
+    def move_rightward(self):
+        self.left_front_wheel_motor_a1_pin1.value(1)
+        self.left_front_wheel_motor_a1_pin2.value(0)
 
-        self.left_rear_wheel_motor_pin1.value(0) 
-        self.left_rear_wheel_motor_pin2.value(1) 
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(1) 
 
-        self.right_rear_wheel_motor_pin1.value(1)
-        self.right_rear_wheel_motor_pin2.value(0) 
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(1) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(1)
+        self.right_rear_wheel_motor_a2_pin2.value(0) 
+    
+    def left_forward(self):
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(0)
+
+        self.right_front_wheel_motor_b1_pin1.value(1) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
+
+        self.left_rear_wheel_motor_b2_pin1.value(1) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(0) 
+
+    def right_forward(self):
+        self.left_front_wheel_motor_a1_pin1.value(1)
+        self.left_front_wheel_motor_a1_pin2.value(0)
+
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
+
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(1)
+        self.right_rear_wheel_motor_a2_pin2.value(0)
+
+    def left_backward(self):
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(1)
+
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
+
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(1)
+
+    def right_backward(self):
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(0)
+
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(1) 
+
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(1) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(0) 
+
+    def rotate_leftward(self):
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(1)
+
+        self.right_front_wheel_motor_b1_pin1.value(1) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
+
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(1) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(1)
+        self.right_rear_wheel_motor_a2_pin2.value(0) 
+
+    def rotate_rightward(self):
+        self.left_front_wheel_motor_a1_pin1.value(1)
+        self.left_front_wheel_motor_a1_pin2.value(0)
+
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(1) 
+
+        self.left_rear_wheel_motor_b2_pin1.value(1) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
+
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(1) 
 
 
     def stop(self):
-        self.left_front_wheel_motor_pin1.value(0)
-        self.left_front_wheel_motor_pin2.value(0)
+        self.left_front_wheel_motor_a1_pin1.value(0)
+        self.left_front_wheel_motor_a1_pin2.value(0)
 
-        self.right_front_wheel_motor_pin1.value(0) 
-        self.right_front_wheel_motor_pin2.value(0) 
+        self.right_front_wheel_motor_b1_pin1.value(0) 
+        self.right_front_wheel_motor_b1_pin2.value(0) 
 
-        self.left_rear_wheel_motor_pin1.value(0) 
-        self.left_rear_wheel_motor_pin2.value(0) 
+        self.left_rear_wheel_motor_b2_pin1.value(0) 
+        self.left_rear_wheel_motor_b2_pin2.value(0) 
 
-        self.right_rear_wheel_motor_pin1.value(0)
-        self.right_rear_wheel_motor_pin2.value(0) 
+        self.right_rear_wheel_motor_a2_pin1.value(0)
+        self.right_rear_wheel_motor_a2_pin2.value(0) 
     
 
 # WiFi配置
@@ -145,6 +226,7 @@ class CarController():
 
         self.init_wifi()
         self.init_mqtt()
+        self.init_device()
 
     def init_wifi(self):
         self.wifi_util = WiFiUtil()
@@ -161,28 +243,52 @@ class CarController():
 
     def init_device(self):
         self.relay = Relay(RELAY_GPIO_NUM)
+        self.relay.off()
 
      # MQTT消息处理函数
     def mqtt_callback(self,topic, msg):
+        '''
+        定义：参考键盘小键盘
+        4：向左
+        6：向右
+        8：向前
+        2：向后
+        7：向左上
+        9：向右上
+        1：向左下
+        3：向右下
+
+        44：左旋转
+        66：右旋转
+
+        0：停止
+
+        '''
         print('topic: ' ,topic)
         if topic == MQTT_COMMAND_TOPIC_CONTROL_CAR.encode():
-            if b'f' == msg:
+            if b'4' == msg:
+                self.car.move_leftward()
+                #time.sleep(1)
+                #self.car.stop()
+            elif b'6'== msg:
+                self.car.move_rightward()
+            elif b'8'== msg:
                 self.car.move_forward()
-                time.sleep(1)
-                self.car.stop()
-            elif b'b'== msg:
+            elif b'2'== msg:
                 self.car.move_backward()
-                time.sleep(1)
-                self.car.stop()
-            elif b'l' == msg:
-                self.car.turn_left()
-                time.sleep(1)
-                self.car.stop()
-            elif b'r' == msg:
-                self.car.turn_right()
-                time.sleep(1)
-                self.car.stop()
-            elif b's' == msg:
+            elif b'7'== msg:
+                self.car.left_forward()
+            elif b'9'== msg:
+                self.car.right_forward()
+            elif b'1'== msg:
+                self.car.left_backward()
+            elif b'3'== msg:
+                self.car.right_backward()
+            elif b'44'== msg:
+                self.car.rotate_leftward()
+            elif b'66' == msg:
+                self.car.rotate_rightward()
+            elif b'0' == msg:
                 self.car.stop()
             elif b'on' == msg:
                 self.relay.on()
@@ -216,24 +322,29 @@ class CarController():
 
 
 def car_test():
-    '''
+   
     car = Car()
+    car.relay.on()
 
-    # 有问题
-    car.move_forward()
-    time.sleep(2)
-    car.move_backward()
-    time.sleep(2)
-    car.turn_left()
-    time.sleep(2)
-    car.turn_right()
-    time.sleep(2)
-    
+    car.left_front_wheel_motor_a1_pin1.value(0)
+    car.left_front_wheel_motor_a1_pin2.value(0)
+
+    car.right_front_wheel_motor_b1_pin1.value(0) 
+    car.right_front_wheel_motor_b1_pin2.value(0) 
+
+    car.left_rear_wheel_motor_b2_pin1.value(0) 
+    car.left_rear_wheel_motor_b2_pin2.value(0) 
+
+    car.right_rear_wheel_motor_a2_pin1.value(0)
+    car.right_rear_wheel_motor_a2_pin2.value(0)
+
+    time.sleep(3)
     car.stop()
+
     '''
     car_controller = CarController()
     car_controller.do_work()
-    
+    '''
 def main():
     car_test()
 

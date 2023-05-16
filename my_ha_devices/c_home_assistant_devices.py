@@ -68,6 +68,7 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
         self.homeassistant_sensor_type = HOMEASSISTANT_SENSOR_TYPE_TEMPERATURE
 
         self.passive_buzzer = PassiveBuzzer(PASSIVE_BUZZER_GPIO_NUM)
+        self.passive_buzzer.stop()
 
         self.esp32160lcd = ESP32160lcd(
             ESP32160LCD_SDA_GPIO_NUM, ESP32160LCD_SCL_GPIO_NUM)
