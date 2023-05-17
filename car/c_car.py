@@ -249,10 +249,10 @@ class CarController():
     def mqtt_callback(self,topic, msg):
         '''
         定义：参考键盘小键盘
-        4：向左
-        6：向右
         8：向前
         2：向后
+        4：向左
+        6：向右
         7：向左上
         9：向右上
         1：向左下
@@ -266,16 +266,14 @@ class CarController():
         '''
         print('topic: ' ,topic)
         if topic == MQTT_COMMAND_TOPIC_CONTROL_CAR.encode():
-            if b'4' == msg:
-                self.car.move_leftward()
-                #time.sleep(1)
-                #self.car.stop()
-            elif b'6'== msg:
-                self.car.move_rightward()
-            elif b'8'== msg:
+            if b'8'== msg:
                 self.car.move_forward()
             elif b'2'== msg:
                 self.car.move_backward()
+            elif b'4' == msg:
+                self.car.move_leftward()
+            elif b'6'== msg:
+                self.car.move_rightward()
             elif b'7'== msg:
                 self.car.left_forward()
             elif b'9'== msg:

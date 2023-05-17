@@ -30,7 +30,7 @@ HOMEASSISTANT_DEVICE_NAME_SWITCH = 'esp32-relay'
 HOMEASSISTANT_SWITCH_NAME_RELAY_CONTROLLER = 'switch'
 HOMEASSISTANT_SWITCH_TYPE_RELAY_CONTROLLER = 'relay'
 
-MQTT_CLIENT_CHECK_MSG_FREQ = 0.2
+MQTT_CLIENT_CHECK_MSG_FREQ = 0.1
 
 RELAY_GPIO_NUM = 22
 # 人体传感器
@@ -214,7 +214,7 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             self.mqtt_client.publish(
                 self.homeassistant_switch_state_topic, "OFF")
             # 设置成低电平，防止反复触发
-            self.infrared_motion_sensor.sensor_pin.value(0)
+            # self.infrared_motion_sensor.sensor_pin.value(0)
 
     def check_memory(self):
         free_mem = gc.mem_free()
