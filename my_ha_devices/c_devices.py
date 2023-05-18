@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-14 22:01:48
+LastEditTime: 2023-05-18 14:25:42
 FilePath: \esp32_projects\my_ha_devices\c_devices.py
 Description: 
 
@@ -574,12 +574,44 @@ class UltrasonicDistanceSensor:
         self.trig_pin.value(0)
         self.echo_pin.value(0)
 
-    def do_measure(self):
+    def start_work(self):
         # 告诉芯片要开始测试了，不同的板子出发条件不同
         self.trig_pin.value(1)
         time.sleep_us(10)
         self.trig_pin.value(0)
 
+    def measure_distance(self):
+        # 告诉芯片要开始测试了，不同的板子出发条件不同
+        self.trig_pin.value(1)
+        time.sleep_us(10)
+        self.trig_pin.value(0)
+
+        pulse_duration = 0
+        distance = 0
+        pulse_end = 0
+        pulse_start = 0
+        # 接收回声信号并计算距离
+        while self.echo_pin.value() == 0:
+            pulse_start = time.ticks_us()
+
+        while self.echo_pin.value() == 1:
+            pulse_end = time.ticks_us()
+
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 0.0343 / 2
+
+        return distance
+
+    def do_measure(self):
+        
+        # 告诉芯片要开始测试了，不同的板子出发条件不同
+        self.trig_pin.value(1)
+        time.sleep_us(10)
+        self.trig_pin.value(0)
+        
+        t1 = 0
+        t2 = 0
+        t3 = 0
         # 检测回响信号，为低电平时，测距完成
         while self.echo_pin.value() == 0:
             # 开始不断递增的微秒计数器 1
@@ -596,7 +628,8 @@ class UltrasonicDistanceSensor:
         t3 = time.ticks_diff(t2, t1) / 10000
 
         # 这里返回的是：开始测距的时间减测距完成的时间*声音的速度/2（来回）
-        return t3 * 340 / 2
+        # distance =  t3 * 340 / 2
+        return t3 * 343 / 2
 
 
 

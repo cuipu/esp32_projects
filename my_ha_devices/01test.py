@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-05 23:03:28
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-12 15:55:43
+LastEditTime: 2023-05-18 14:38:44
 FilePath: \esp32_projects\my_ha_devices\01test.py
 Description: 
 
@@ -10,10 +10,9 @@ Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 '''
 import c_devices
 from c_utils import MultiThreadUtil,WiFiUtil
-import c_home_assistant_devices
 import time
 import _thread
-import config
+#import config
 import machine
 from umqttsimple import MQTTClient
 
@@ -187,13 +186,40 @@ class TestHaMqtt:
         while True:
             self.mqtt_client.check_msg()
             time.sleep(0.5)
+# 定义共享变量和锁
+running = True
+running_lock = _thread.allocate_lock()
+
+# 定义线程的主循环
+def thread_func():
+    while True:
+        with running_lock:
+            if not running:
+                break
+        print("Thread is running...")
+        time.sleep(1)
+    print("Thread stopped")
+
+def test_ultrasonicDistanceSensor():
+    ultrasonicDistanceSensor =  c_devices.UltrasonicDistanceSensor(19,18)
+    while True:
+        distance = ultrasonicDistanceSensor.do_measure()
+        print(distance)
+        time.sleep(0.1)
 
 def main():
-    home_assistant_device_test()
+    
 
-    #test_ha = TestHaMqtt()
+    m =  MultiThreadUtil()
+    thread_id = m.start_new_thread(test_ultrasonicDistanceSensor)
+    print(thread_id)
 
-    #test_ha.test_ha_mqtt()
+    thread_func()
+    time.sleep(5)
+    running = False
+    # 停止线程的执行
+    with running_lock:
+        running = False
 
 
 if __name__ == "__main__":

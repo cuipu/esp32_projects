@@ -1,9 +1,10 @@
-from c_utils import WiFiUtil
-from c_devices import Relay
+from c_utils import WiFiUtil,MultiThreadUtil
+from c_devices import Relay,UltrasonicDistanceSensor
 from umqttsimple import MQTTClient
 from machine import Pin
 import time
 import sys
+import _thread
 
 '''
 
@@ -29,6 +30,9 @@ LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2 = 5
 RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1 = 16
 RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2 = 4
 
+
+
+
 class Car:
     def __init__(self):
         self.left_front_wheel_motor_a1_pin1 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
@@ -43,12 +47,6 @@ class Car:
         self.right_rear_wheel_motor_a2_pin1 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
         self.right_rear_wheel_motor_a2_pin2 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
 
-        self.relay = None
-
-        self.init_device()
-    def init_device(self):
-        self.relay = Relay(RELAY_GPIO_NUM)
-        self.relay.off()
 
     def move_forward(self):
         self.left_front_wheel_motor_a1_pin1.value(1)
@@ -207,22 +205,34 @@ MQTT_USER = 'test'
 MQTT_PASSWORD = '1234560.'
 
 MQTT_COMMAND_TOPIC_CONTROL_CAR = 'control car'
-MQTT_CLIENT_CHECK_MSG_FREQ = 0.1
+MQTT_CLIENT_CHECK_MSG_FREQ_MS = 50
 
 RELAY_GPIO_NUM = 33
 
 TRIG_GPIO_NUM = 1
 ECHO_GPIO_NUM = 1
 
+ULTRASONIC_DISTANCE_SENSOR_TRIG_GPIO_NUM = 19
+ULTRASONIC_DISTANCE_SENSOR_ECHO_GPIO_NUM = 18
+
 # 刹车距离，单位 cm
-BRAKING_DISTANCE = 10
+DISTANCE_LIMIT = 3
+
 class CarController():
     def __init__(self):
         self.mqtt_client = None
         self.car = Car()
-        #self.ultrasonic_distance_sensor = UltrasonicDistanceSensor(TRIG_GPIO_NUM,ECHO_GPIO_NUM)
+
         self.wifi_util = None
+
         self.relay = None
+        self.ultrasonic_distance_sensor = None
+
+        # self.distance_event = _thread.Event()  # 距离监测事件对象
+        self.distance_thread = None  # 距离监测线程
+        self.distance_flag = False  # 距离监测标志变量
+        self.distance_lock = _thread.allocate_lock()  # 距离监测锁对象
+        self.distance_thread_running = True  # 距离监测线程运行标志
 
         self.init_wifi()
         self.init_mqtt()
@@ -245,6 +255,10 @@ class CarController():
         self.relay = Relay(RELAY_GPIO_NUM)
         self.relay.off()
 
+
+        self.ultrasonic_distance_sensor = UltrasonicDistanceSensor(ULTRASONIC_DISTANCE_SENSOR_TRIG_GPIO_NUM,
+                ULTRASONIC_DISTANCE_SENSOR_ECHO_GPIO_NUM
+        )
      # MQTT消息处理函数
     def mqtt_callback(self,topic, msg):
         '''
@@ -290,37 +304,69 @@ class CarController():
                 self.car.stop()
             elif b'on' == msg:
                 self.relay.on()
+                # _thread.resume(self.distance_thread)  # 恢复距离监测线程的执行
+                # self.distance_event.set()  # 设置事件，恢复距离监测线程的执行
+                #self.distance_flag = True  # 设置标志变量为 True，恢复距离监测线程的执行
+                # self.distance_lock.acquire()  # 获取锁，恢复距离监测线程的执行
+                # self.distance_lock.release()  # 释放锁
+                # self.distance_thread_running = True  # 恢复距离监测线程的执
             elif b'off' == msg:
                 self.relay.off()
+                # _thread.suspend(self.distance_thread)  # 暂停距离监测线程的执行
+                # self.distance_event.clear()  # 清除事件，暂停距离监测线程的执行
+                #self.distance_flag = False  # 设置标志变量为 False，暂停距离监测线程的执行
+                # self.distance_lock.acquire()  # 获取锁，暂停距离监测线程的执行
+                # self.distance_lock.release()  # 释放锁
+                # self.distance_thread_running = False  # 暂停距离监测线程的执行
             else:
                 self.car.stop()
 
 
-    def do_distance_monitoring(self):
-        '''
-        description: 监测距离，如果太近则停止
-        return {*}
-        '''                
-        pass
-
     def do_work(self):
+        front_distance = DISTANCE_LIMIT + 1
         try:
+            # self.distance_thread = _thread.start_new_thread(self.test_distance_limit, ())  # 启动距离监测线程
             while True:
-                #if self.ultrasonic_distance_sensor.do_measure() < BRAKING_DISTANCE:
-                #    self.car.stop()
-                #else:
+                front_distance = self.ultrasonic_distance_sensor.do_measure()
+                print('front_distance: ',front_distance)
+                if front_distance < DISTANCE_LIMIT:
+                    # 不应该是停止，应该是不能继续前进
+                    self.car.stop()
                 self.mqtt_client.check_msg()
-                time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
+                time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ_MS)
         except MemoryError:
             print("Memory error occurred. Restarting...")
         except Exception as e:
             print(f"Exception occurred: {e}")
         finally:
             sys.exit()
+    
+    def test_distance_limit(self):
+        '''
+        description: 测试距离，如果达到极限距离，则停止车辆运动。
+        Args:
+            distance_limit: 极限距离（单位：厘米）。
+        Returns:
+            None
+        TODO 线程无法随着relay的on和off自动关停，留着后续修改，子线程启动后会无辜停止
+        '''
+        
+        try:
+            distance = DISTANCE_LIMIT + 1  # 初始化变量为超出距离限制的值
+            while True:
+                distance = self.ultrasonic_distance_sensor.do_measure()
+                print('distance: ', distance)
+                if distance < DISTANCE_LIMIT:
+                    self.car.stop()
+                time.sleep(0.1)
+        except Exception as e:
+            print(f"Exception occurred: {e}")
+            self.car.stop()
 
 
 def car_test():
-   
+
+    '''
     car = Car()
     car.relay.on()
 
@@ -338,11 +384,10 @@ def car_test():
 
     time.sleep(3)
     car.stop()
-
     '''
     car_controller = CarController()
     car_controller.do_work()
-    '''
+    
 def main():
     car_test()
 

@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-12 16:10:44
+LastEditTime: 2023-05-18 17:27:44
 FilePath: \esp32_projects\my_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -320,9 +320,11 @@ class MultiThreadUtil:
         :type args: tuple, optional
         """
         try:
-            _thread.start_new_thread(function, args)
+            thread_id = _thread.start_new_thread(function, args)
         except:
             print("Error: 无法启动线程")
+        return thread_id
+        
 
     @staticmethod
     def allocate_lock():
