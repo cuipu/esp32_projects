@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-18 14:25:42
+LastEditTime: 2023-05-19 22:46:58
 FilePath: \esp32_projects\my_ha_devices\c_devices.py
 Description: 
 
@@ -630,6 +630,187 @@ class UltrasonicDistanceSensor:
         # 这里返回的是：开始测距的时间减测距完成的时间*声音的速度/2（来回）
         # distance =  t3 * 340 / 2
         return t3 * 343 / 2
+        
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-04-28 11:58:08
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-04-30 12:21:43
+FilePath: \Demo\c_stepper_motor.py
+Description: 进步电机
+
+硬件：
+需要电压：5V
+
+还没测试，控制板貌似烧了  - -！
+
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+'''
+
+class StepperMotor:
+
+    def __init__(self, a_gpio_num: int, b_gpio_num: int, c_gpio_num: int, d_gpio_num: int):
+
+        self.a_pin = Pin(a_gpio_num, Pin.OUT)
+        self.b_pin = Pin(b_gpio_num, Pin.OUT)
+        self.c_pin = Pin(c_gpio_num, Pin.OUT)
+        self.d_pin = Pin(d_gpio_num, Pin.OUT)
+
+        # 初始化都为0
+        self.a_pin .value(0)
+        self.b_pin .value(0)
+        self.c_pin .value(0)
+        self.d_pin .value(0)
+
+        # 使用双向链表结构
+        self.stepper_motor_pin_double_link = DLinkList()
+
+        self.stepper_motor_pin_double_link.append(self.a_pin)
+        self.stepper_motor_pin_double_link.append(self.b_pin)
+        self.stepper_motor_pin_double_link.append(self.c_pin)
+        self.stepper_motor_pin_double_link.append(self.d_pin)
+
+    def turn(self, delay_time_ms=100, reverse: int = (0, 1)):
+
+        while not self.stepper_motor_pin_double_link.is_empty():
+            cur = self.stepper_motor_pin_double_link._head
+            if 1 == reverse:
+                cur.item.value(0)
+            else:
+                cur.item.value(1)
+
+            cur = cur.next
+            time.sleep_ms(delay_time_ms)
+
+            if 1 == reverse:
+                cur.item.value(1)
+            else:
+                cur.item.value(0)
+
+
+class Node(object):
+    """双向链表节点"""
+
+    def __init__(self, item):
+        self.item = item
+        self.next = None
+        self.prev = None
+
+
+class DLinkList(object):
+    """双向链表"""
+
+    def __init__(self):
+        self._head = None
+
+    def is_empty(self):
+        """判断链表是否为空"""
+        return self._head == None
+
+    def length(self):
+        """返回链表的长度"""
+        cur = self._head
+        count = 0
+        while cur != None:
+            count += 1
+            cur = cur.next
+        return count
+
+    def travel(self):
+        """遍历链表"""
+        cur = self._head
+        while cur != None:
+            print(cur.item)
+            cur = cur.next
+        print("")
+
+    def add(self, item):
+        """头部插入元素"""
+        node = Node(item)
+        if self.is_empty():
+            # 如果是空链表，将_head指向node
+            self._head = node
+        else:
+            # 将node的next指向_head的头节点
+            node.next = self._head
+            # 将_head的头节点的prev指向node
+            self._head.prev = node
+            # 将_head 指向node
+            self._head = node
+
+    def append(self, item):
+        """尾部插入元素"""
+        node = Node(item)
+        if self.is_empty():
+            # 如果是空链表，将_head指向node
+            self._head = node
+        else:
+            # 移动到链表尾部
+            cur = self._head
+            while cur.next != None:
+                cur = cur.next
+            # 将尾节点cur的next指向node
+            cur.next = node
+            # 将node的prev指向cur
+            node.prev = cur
+
+    def search(self, item):
+        """查找元素是否存在"""
+        cur = self._head
+        while cur != None:
+            if cur.item == item:
+                return True
+            cur = cur.next
+        return False
+
+    def insert(self, pos, item):
+        """在指定位置添加节点"""
+        if pos <= 0:
+            self.add(item)
+        elif pos > (self.length()-1):
+            self.append(item)
+        else:
+            node = Node(item)
+            cur = self._head
+            count = 0
+            # 移动到指定位置的前一个位置
+            while count < (pos-1):
+                count += 1
+                cur = cur.next
+            # 将node的prev指向cur
+            node.prev = cur
+            # 将node的next指向cur的下一个节点
+            node.next = cur.next
+            # 将cur的下一个节点的prev指向node
+            cur.next.prev = node
+            # 将cur的next指向node
+            cur.next = node
+
+    def remove(self, item):
+        """删除元素"""
+        if self.is_empty():
+            return
+        else:
+            cur = self._head
+            if cur.item == item:
+                # 如果首节点的元素即是要删除的元素
+                if cur.next == None:
+                    # 如果链表只有这一个节点
+                    self._head = None
+                else:
+                    # 将第二个节点的prev设置为None
+                    cur.next.prev = None
+                    # 将_head指向第二个节点
+                    self._head = cur.next
+                return
+            while cur != None:
+                if cur.item == item:
+                    # 将cur的前一个节点的next指向cur的后一个节点
+                    cur.prev.next = cur.next
+                    # 将cur的后一个节点的prev指向cur的前一个节点
+                    cur.next.prev = cur.prev
+                    break
+                cur = cur.next
 
 
 

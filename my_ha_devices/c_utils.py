@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-18 17:27:44
+LastEditTime: 2023-05-20 19:19:17
 FilePath: \esp32_projects\my_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -163,6 +163,20 @@ class FileUtil:
         """
         try:
             with open(filename, 'w') as f:
+                f.write(content)
+        except OSError as e:
+            print("写入文件失败: {}".format(e))
+    
+    def write_file_by_byte(filename, content):
+        """
+        写入文件内容。
+
+        参数：
+            filename: 文件名。
+            content: 文件内容。
+        """
+        try:
+            with open(filename, 'wb') as f:
                 f.write(content)
         except OSError as e:
             print("写入文件失败: {}".format(e))
@@ -421,3 +435,74 @@ class MemoryUtil:
         print("Memory difference:")
         print("Free memory: {} bytes".format(diff_free))
         print("Allocated memory: {} bytes".format(diff_alloc))
+
+    
+
+class TimeUtil:
+
+   
+    def format_datetime(self, timestamp):
+        """
+        格式化时间戳为"yyyy-MM-dd HH:mm:ss"格式的字符串
+
+        参数:
+        - timestamp: 时间戳
+
+        返回值:
+        - 格式化后的时间字符串
+        """
+        year, month, day, hour, minute, second, _, _ = utime.localtime(timestamp)
+        formatted_datetime = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(
+            year, month, day, hour, minute, second
+        )
+        return formatted_datetime
+
+   
+    def get_current_timestamp(self):
+        """
+        获取当前时间戳
+
+        返回值:
+        - 当前时间戳
+        """
+        return utime.time()
+
+    
+    def get_current_datetime(self):
+        """
+        获取当前时间的格式化字符串"yyyy-MM-dd HH:mm:ss"
+
+        返回值:
+        - 当前时间的格式化字符串
+        """
+        current_timestamp = self.get_current_timestamp()
+        current_datetime = self.format_datetime(current_timestamp)
+        return current_datetime
+
+def time_util_test():
+    time_util = TimeUtil()
+
+    # 格式化时间戳
+    timestamp = 1621538400
+    formatted_time = time_util.format_datetime(timestamp)
+    print("Formatted Time:", formatted_time)
+
+    # 获取当前时间戳
+    current_timestamp = time_util.get_current_timestamp()
+    print("Current Timestamp:", current_timestamp)
+
+    # 格式化当前时间
+    current_datetime = time_util.get_current_datetime()
+    print("Current Datetime:", current_datetime)
+
+def file_util_test():
+    file_util = FileUtil()
+    
+    file_util.write_file('/sd', 'content')
+
+def main():
+    test_file_util()
+
+
+if __name__ == "__main__":
+    main()

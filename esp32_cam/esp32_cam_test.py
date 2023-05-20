@@ -1,82 +1,29 @@
 '''
 Author: cuipu g050505@gmail.com
-Date: 2023-05-11 22:03:16
+Date: 2023-05-19 23:01:38
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-20 22:41:20
-FilePath: \esp32_projects\esp32_cam\c_esp32_cam.py
+LastEditTime: 2023-05-20 10:49:40
+FilePath: \esp32_projects\esp32_cam\esp32_cam_test.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
 '''
-import camera
-from c_utils import WiFiUtil, TimeUtil,FileUtil
 import socket
-import uos
-import utime
-import ustruct
-import os
-from machine import SDCard,Pin, disable_irq, enable_irq
-import machine
+import network
+import camera
+import time
 
-WIFI_SSID = 'TP-LINK_502_2.4G'
-WIFI_PASSWORD = '1234567890...'
-SDCARD_DIR = '/sd'
 class ESP32Cam:
     def __init__(self):
-        
+    
         self.led =  Pin(4, Pin.OUT)
         self._init_wifi()
-        # 挂载SD卡
-        self.mount_sdcard()
-        self.file_util = FileUtil()
-        self.time_util = TimeUtil()
     
-    def is_sdcard_mounted(self):
-        try:
-            uos.listdir(SDCARD_DIR)
-            return True
-        except OSError:
-            return False
-
-    def mount_sdcard(self,sdcard_dir = SDCARD_DIR):
-        try:
-            if self.is_sdcard_mounted():
-                print("sdcard is mounted")
-            else:
-                uos.mount(SDCard(), sdcard_dir)
-        except Exception as ret:
-            print("mount failed...", ret)
-        else:
-            print("mount succeed...")
-
-    def take_photo(self, photo_dir = SDCARD_DIR):
-
-        # 初始化摄像头
-        try:
-            photo_path = photo_dir + '/' + str(utime.ticks_us()) + '.png'
-            txt_path = photo_dir + '/' + str(utime.ticks_us()) + '.txt'
-
-            camera.init(0, format=camera.JPEG)
-            # 拍摄一张图片
-            buf = camera.capture()  # 大小是640x480
-           
-            self.file_util.write_file(txt_path,txt_path)
-            self.file_util.write_file_by_byte(photo_path,buf)
-            # 保存图片到文件
-
-            #self.led.value(0)
-        except Exception as e:
-            camera.deinit()
-            camera.init(0, format=camera.JPEG)
-        finally:
-            camera.deinit()
-
     def _init_wifi(self):
         # 初始化WiFi
         wifi = WiFiUtil()
         wifi.do_connect(WIFI_SSID, WIFI_PASSWORD)
-
-
+    
     def send_camera_feed(self,server_ip : str,server_port:int):
         # 摄像头初始化
         try:
@@ -84,7 +31,8 @@ class ESP32Cam:
         except Exception as e:
             camera.deinit()
             camera.init(0, format=camera.JPEG)
-        
+
+
         # 其他设置：
         # 上翻下翻
         camera.flip(0)
@@ -126,10 +74,11 @@ class ESP32Cam:
         camera.contrast(0)
         #-2,2（默认为0）.2高对比度
         #-2,2 (default 0). 2 highcontrast
-        
+
         # 质量
         camera.quality(10)
         #10-63数字越小质量越高
+
         # socket UDP 的创建
         s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM,0)
 
@@ -137,20 +86,37 @@ class ESP32Cam:
             while True:
                 buf = camera.capture()  # 获取图像数据
                 s.sendto(buf, (server_ip, server_port))  # 向服务器发送图像数据
-                utime.sleep(0.1)
-        except Exception as e:
-            print('Exception:', e)
-            camera.deinit()
-            camera.init(0, format=camera.JPEG)
+                time.sleep(0.1)
+        except:
+            pass
         finally:
             camera.deinit()
 
-    
+def camera_test():
+
+
+    # 初始化摄像头
+    try:
+        camera.init(0, format=camera.JPEG)
+    except Exception as e:
+        camera.deinit()
+        camera.init(0, format=camera.JPEG)
+
+    # 拍摄一张图片
+    buf = camera.capture()  # 大小是640x480
+
+    # 保存图片到文件
+    with open("第一张图片.png", "wb") as f:
+        f.write(buf)  # buf中的数据就是图片的数据，所以直接写入到文件就行了
+        print("拍照已完成，点击Thonny左侧【MicroPython设备】右侧的三，\n然后看到‘刷新’，点击刷新会看到 图片，\n然后右击图片名称，选择下载到电脑的路径即可...")
+
+    camera.deinit()
+
+
+
 def main():
     
-    esp32_cam = ESP32Cam()
-    esp32_cam.send_camera_feed('192.168.2.10',9090)
-
+    camera_test()
 
 
 if __name__ == "__main__":
