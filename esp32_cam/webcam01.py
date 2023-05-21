@@ -25,6 +25,8 @@ class Webcam:
         wifi = WiFiUtil()
         wifi.do_connect(WIFI_SSID, WIFI_PASSWORD)
 
+
+
     # 启动摄像头服务器
     def start_server(self):
         self._init_wifi()

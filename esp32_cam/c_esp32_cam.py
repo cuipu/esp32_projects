@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-20 22:41:20
+LastEditTime: 2023-05-21 01:16:43
 FilePath: \esp32_projects\esp32_cam\c_esp32_cam.py
 Description: 
 
@@ -24,7 +24,7 @@ SDCARD_DIR = '/sd'
 class ESP32Cam:
     def __init__(self):
         
-        self.led =  Pin(4, Pin.OUT)
+        self.led = Pin(4, Pin.OUT)
         self._init_wifi()
         # 挂载SD卡
         self.mount_sdcard()
@@ -49,18 +49,21 @@ class ESP32Cam:
         else:
             print("mount succeed...")
 
+    def flash_led(self):
+        self.led.value(1)
+        utime.sleep(1)
+        self.led.value(0)
+
     def take_photo(self, photo_dir = SDCARD_DIR):
 
-        # 初始化摄像头
+        # 初始化摄像头 TODO 照相这里有问题
         try:
             photo_path = photo_dir + '/' + str(utime.ticks_us()) + '.png'
-            txt_path = photo_dir + '/' + str(utime.ticks_us()) + '.txt'
 
             camera.init(0, format=camera.JPEG)
             # 拍摄一张图片
             buf = camera.capture()  # 大小是640x480
            
-            self.file_util.write_file(txt_path,txt_path)
             self.file_util.write_file_by_byte(photo_path,buf)
             # 保存图片到文件
 

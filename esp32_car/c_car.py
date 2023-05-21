@@ -6,6 +6,53 @@ import time
 import sys
 import _thread
 
+
+
+class MotorController:
+    def __init__(self, in1_gpio_num, in2_gpio_num, ena_pin_gpio_num = None, pwm_gpio_num=None):
+        
+        self.in1_pin = Pin(in1_gpio_num, Pin.OUT)
+        self.in2_pin = Pin(in2_gpio_num, Pin.OUT)
+        self.ena_pin = Pin(ena_pin_gpio_num, Pin.OUT) if ena_pin_gpio_num is not None else None
+        self.pwm_pin = PWM(pwm_gpio_num) if pwm_gpio_num is not None else None
+
+
+    def set_speed(self, speed = 50):
+        if self.pwm_pin is not None:
+            self.pwm_pin.duty(speed)
+
+    def forward(self, speed = 50):
+        self.set_speed(speed)
+        if self.ena_pin is not None:
+            self.ena_pin.value(1)
+        self.in1_pin.value(1)
+        self.in2_pin.value(0)
+
+    def backward(self, speed = 50):
+        self.set_speed(speed)
+        if self.ena_pin is not None:
+            self.ena_pin.on()
+        self.in1_pin.value(0)
+        self.in2_pin.value(1)
+
+    def stop(self):
+        if self.pwm_pin is not None:
+            self.pwm_pin.duty(0)
+        if self.ena_pin is not None:
+            self.ena_pin.value(0)
+        self.in1_pin.value(0)
+        self.in2_pin.value(0)
+
+    def deinit(self):
+        self.stop()
+        if self.pwm_pin is not None:
+            self.pwm_pin.deinit()
+        if self.ena_pin is not None:
+            self.ena_pin.deinit()
+        self.in1_pin.deinit()
+        self.in2_pin.deinit()
+
+
 '''
 
 左前轮：Left front wheel
@@ -30,168 +77,138 @@ LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2 = 5
 RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1 = 16
 RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2 = 4
 
-
-
-
-class Car:
+class Vehicle:
     def __init__(self):
-        self.left_front_wheel_motor_a1_pin1 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.left_front_wheel_motor_a1_pin2 = Pin(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
+        """
+        初始化Car类的实例
+        """
+        # 初始化四个电机控制器
+        self.left_front_wheel_motor_controller = MotorController(LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM1, LEFT_FRONT_WHEEL_MOTOR_GPIO_NUM2)
+        self.right_front_wheel_motor_controller = MotorController(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1, RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2)
+        self.left_rear_wheel_motor_controller = MotorController(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1, LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2)
+        self.right_rear_wheel_motor_controller = MotorController(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2)
 
-        self.right_front_wheel_motor_b1_pin1 = Pin(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.right_front_wheel_motor_b1_pin2 = Pin(RIGHT_FRONT_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
-
-        self.left_rear_wheel_motor_b2_pin1 = Pin(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.left_rear_wheel_motor_b2_pin2 = Pin(LEFT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
-
-        self.right_rear_wheel_motor_a2_pin1 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM1, Pin.OUT)
-        self.right_rear_wheel_motor_a2_pin2 = Pin(RIGHT_REAR_WHEEL_MOTOR_GPIO_NUM2, Pin.OUT)
-
-
-    def move_forward(self):
-        self.left_front_wheel_motor_a1_pin1.value(1)
-        self.left_front_wheel_motor_a1_pin2.value(0)
-
-        self.right_front_wheel_motor_b1_pin1.value(1) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(1) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(1) 
-        self.right_rear_wheel_motor_a2_pin2.value(0)
-
-    def move_backward(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(1)
-
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(1) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(1) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(1)
-        
-    def move_leftward(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(1)
-
-        self.right_front_wheel_motor_b1_pin1.value(1) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(1) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(1) 
-
-    def move_rightward(self):
-        self.left_front_wheel_motor_a1_pin1.value(1)
-        self.left_front_wheel_motor_a1_pin2.value(0)
-
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(1) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(1) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(1)
-        self.right_rear_wheel_motor_a2_pin2.value(0) 
     
-    def left_forward(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(0)
+    def move_forward(self, speed=50):
+        """
+        向前移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.forward(speed)
+        self.right_front_wheel_motor_controller.forward(speed)
+        self.left_rear_wheel_motor_controller.forward(speed)
+        self.right_rear_wheel_motor_controller.forward(speed)
 
-        self.right_front_wheel_motor_b1_pin1.value(1) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
+    def move_backward(self, speed=50):
+        """
+        向后移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.backward(speed)
+        self.right_front_wheel_motor_controller.backward(speed)
+        self.left_rear_wheel_motor_controller.backward(speed)
+        self.right_rear_wheel_motor_controller.backward(speed)
+        
+    def move_leftward(self, speed=50):
+        """
+        向左移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.backward(speed)
+        self.right_front_wheel_motor_controller.forward(speed)
+        self.left_rear_wheel_motor_controller.forward(speed)
+        self.right_rear_wheel_motor_controller.backward(speed)
 
-        self.left_rear_wheel_motor_b2_pin1.value(1) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
+    def move_rightward(self, speed=50):
+        """
+        向右移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.forward(speed)
+        self.right_front_wheel_motor_controller.backward(speed)
+        self.left_rear_wheel_motor_controller.backward(speed)
+        self.right_rear_wheel_motor_controller.forward(speed)
+    
+    def left_forward(self, speed=50):
+        """
+        左前方移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.stop()
+        self.right_front_wheel_motor_controller.forward(speed)
+        self.left_rear_wheel_motor_controller.forward(speed)
+        self.right_rear_wheel_motor_controller.stop()
 
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(0) 
+    def right_forward(self, speed=50):
+        """
+        右前方移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.forward(speed)
+        self.right_front_wheel_motor_controller.stop()
+        self.left_rear_wheel_motor_controller.stop()
+        self.right_rear_wheel_motor_controller.forward(speed)
 
-    def right_forward(self):
-        self.left_front_wheel_motor_a1_pin1.value(1)
-        self.left_front_wheel_motor_a1_pin2.value(0)
+    def left_backward(self, speed=50):
+        """
+        左后方移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.backward(speed)
+        self.right_front_wheel_motor_controller.stop()
+        self.left_rear_wheel_motor_controller.stop()
+        self.right_rear_wheel_motor_controller.backward(speed)
 
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
+    def right_backward(self, speed=50):
+        """
+        右后方移动
+        参数:
+            - speed: 移动速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.stop()
+        self.right_front_wheel_motor_controller.backward(speed)
+        self.left_rear_wheel_motor_controller.backward(speed)
+        self.right_rear_wheel_motor_controller.stop()
 
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
+    def rotate_leftward(self, speed=50):
+        """
+        向左旋转
+        参数:
+            - speed: 旋转速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.backward(speed)
+        self.right_front_wheel_motor_controller.forward(speed)
+        self.left_rear_wheel_motor_controller.backward(speed)
+        self.right_rear_wheel_motor_controller.forward(speed)
 
-        self.right_rear_wheel_motor_a2_pin1.value(1)
-        self.right_rear_wheel_motor_a2_pin2.value(0)
-
-    def left_backward(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(1)
-
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(1)
-
-    def right_backward(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(0)
-
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(1) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(1) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(0) 
-
-    def rotate_leftward(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(1)
-
-        self.right_front_wheel_motor_b1_pin1.value(1) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(1) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(1)
-        self.right_rear_wheel_motor_a2_pin2.value(0) 
-
-    def rotate_rightward(self):
-        self.left_front_wheel_motor_a1_pin1.value(1)
-        self.left_front_wheel_motor_a1_pin2.value(0)
-
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(1) 
-
-        self.left_rear_wheel_motor_b2_pin1.value(1) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(1) 
-
+    def rotate_rightward(self, speed=50):
+        """
+        向右旋转
+        参数:
+            - speed: 旋转速度 (默认为50)
+        """
+        self.left_front_wheel_motor_controller.forward(speed)
+        self.right_front_wheel_motor_controller.backward(speed)
+        self.left_rear_wheel_motor_controller.forward(speed)
+        self.right_rear_wheel_motor_controller.backward(speed)
 
     def stop(self):
-        self.left_front_wheel_motor_a1_pin1.value(0)
-        self.left_front_wheel_motor_a1_pin2.value(0)
+        """
+        停止移动
+        """
+        self.left_front_wheel_motor_controller.stop()
+        self.right_front_wheel_motor_controller.stop()
+        self.left_rear_wheel_motor_controller.stop()
+        self.right_rear_wheel_motor_controller.stop()
 
-        self.right_front_wheel_motor_b1_pin1.value(0) 
-        self.right_front_wheel_motor_b1_pin2.value(0) 
 
-        self.left_rear_wheel_motor_b2_pin1.value(0) 
-        self.left_rear_wheel_motor_b2_pin2.value(0) 
-
-        self.right_rear_wheel_motor_a2_pin1.value(0)
-        self.right_rear_wheel_motor_a2_pin2.value(0) 
-    
 
 # WiFi配置
 WIFI_NAME = 'TP-LINK_502_2.4G'
@@ -215,13 +232,15 @@ ECHO_GPIO_NUM = 1
 ULTRASONIC_DISTANCE_SENSOR_TRIG_GPIO_NUM = 19
 ULTRASONIC_DISTANCE_SENSOR_ECHO_GPIO_NUM = 18
 
-# 刹车距离，单位 cm
-DISTANCE_LIMIT = 3
+# 极限距离，单位 cm
+DISTANCE_LIMIT = 10
+
+
 
 class CarController():
     def __init__(self):
         self.mqtt_client = None
-        self.car = Car()
+        self.car = Vehicle()
 
         self.wifi_util = None
 
@@ -331,9 +350,9 @@ class CarController():
                 print('front_distance: ',front_distance)
                 if front_distance < DISTANCE_LIMIT:
                     # 不应该是停止，应该是不能继续前进
-                    self.car.stop()
+                    self.car.move_backward()
                 self.mqtt_client.check_msg()
-                time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ_MS)
+                time.sleep_ms(MQTT_CLIENT_CHECK_MSG_FREQ_MS)
         except MemoryError:
             print("Memory error occurred. Restarting...")
         except Exception as e:
@@ -366,25 +385,6 @@ class CarController():
 
 def car_test():
 
-    '''
-    car = Car()
-    car.relay.on()
-
-    car.left_front_wheel_motor_a1_pin1.value(0)
-    car.left_front_wheel_motor_a1_pin2.value(0)
-
-    car.right_front_wheel_motor_b1_pin1.value(0) 
-    car.right_front_wheel_motor_b1_pin2.value(0) 
-
-    car.left_rear_wheel_motor_b2_pin1.value(0) 
-    car.left_rear_wheel_motor_b2_pin2.value(0) 
-
-    car.right_rear_wheel_motor_a2_pin1.value(0)
-    car.right_rear_wheel_motor_a2_pin2.value(0)
-
-    time.sleep(3)
-    car.stop()
-    '''
     car_controller = CarController()
     car_controller.do_work()
     
