@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-20 19:19:17
-FilePath: \esp32_projects\my_ha_devices\c_utils.py
+LastEditTime: 2023-05-22 20:05:22
+FilePath: \esp32_projects\esp32_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
@@ -18,6 +18,7 @@ import network
 import time
 import ujson
 import gc
+import usocket
 #import ulogging as logging
 #logging.basicConfig(level=logging.INFO)
 #log = logging.getLogger('app')
@@ -495,13 +496,70 @@ def time_util_test():
     current_datetime = time_util.get_current_datetime()
     print("Current Datetime:", current_datetime)
 
-def file_util_test():
-    file_util = FileUtil()
-    
-    file_util.write_file('/sd', 'content')
+
+
+
+class DNSResolver:
+    def __init__(self):
+        self.sock = None
+
+    def connect(self, host, port=80):
+        try:
+            addr = usocket.getaddrinfo(host, port)[0][-1]
+            self.sock = usocket.socket(usocket.AF_INET, usocket.SOCK_STREAM)
+            self.sock.connect(addr)
+        except Exception as e:
+            print("Connection error:", e)
+
+    def send_request(self, request):
+        try:
+            self.sock.send(request)
+        except Exception as e:
+            print("Send request error:", e)
+
+    def receive_response(self, buffer_size=4096):
+        try:
+            return self.sock.recv(buffer_size)
+        except Exception as e:
+            print("Receive response error:", e)
+
+    def close(self):
+        try:
+            self.sock.close()
+        except Exception as e:
+            print("Close socket error:", e)
+
+    @staticmethod
+    def get_public_ip(domain):
+        try:
+            addr_info = usocket.getaddrinfo(domain, 80)
+            if len(addr_info) > 0:
+                ip = addr_info[0][-1][0]
+                return ip
+            else:
+                print("Failed to retrieve IP address for domain:", domain)
+                return None
+        except Exception as e:
+            print("Error retrieving public IP:", e)
+            return None
+
+
+# WiFi配置
+WIFI_NAME = 'TP-LINK_502_2.4G'
+WIFI_PASSWORD = '1234567890...'
+def test():
+    wifi = WiFiUtil()
+    wifi.do_connect(WIFI_NAME, WIFI_PASSWORD)
+    domain = 'www.cuipu.net'
+    public_ip = DNSResolver.get_public_ip(domain)
+    if public_ip:
+        print("Public IP for domain '{0}': {1}".format(domain, public_ip))
+    else:
+        print("Failed to retrieve the public IP for domain '{0}'".format(domain))
+
 
 def main():
-    test_file_util()
+    test()
 
 
 if __name__ == "__main__":

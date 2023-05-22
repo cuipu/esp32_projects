@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-06 19:35:50
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-21 12:49:16
-FilePath: \esp32_projects\car\boot.py
+LastEditTime: 2023-05-23 00:35:33
+FilePath: \esp32_projects\esp32_car\boot.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
