@@ -370,7 +370,6 @@ Description: 继电器控制
 Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
 '''
 
-
 class Relay:
     def __init__(self, repay_gpio_num, trigger_high=True):
         """
