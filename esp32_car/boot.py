@@ -10,6 +10,7 @@ Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 '''
 from c_car import CarController
 import sys
+import uerrno
 
 # This file is executed on every boot (including wake-boot from deepsleep)
 # import esp

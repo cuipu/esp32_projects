@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-22 20:05:22
+LastEditTime: 2023-05-24 12:06:13
 FilePath: \esp32_projects\esp32_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -19,6 +19,8 @@ import time
 import ujson
 import gc
 import usocket
+import ntptime
+
 #import ulogging as logging
 #logging.basicConfig(level=logging.INFO)
 #log = logging.getLogger('app')
@@ -480,6 +482,16 @@ class TimeUtil:
         current_datetime = self.format_datetime(current_timestamp)
         return current_datetime
 
+    def synchronised_local_time(self):
+        """
+        同步本地时间，需要先联网
+        """
+        ntptime.NTP_DELTA = ntptime.NTP_DELTA - 8*60*60 # UTC+8 
+        ntptime.settime()
+        #print("同步后本地时间：%s" %str(time.localtime()))  
+        print("同步后本地时间：%s" %str(self.get_current_datetime()))  
+        return self.get_current_datetime()
+        
 def time_util_test():
     time_util = TimeUtil()
 
