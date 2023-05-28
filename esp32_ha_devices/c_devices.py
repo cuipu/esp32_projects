@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-29 00:13:36
+LastEditTime: 2023-05-29 00:21:50
 FilePath: \esp32_projects\esp32_ha_devices\c_devices.py
 Description: 
 
@@ -406,8 +406,8 @@ Author: cuipu g050505@gmail.com
 Date: 2023-04-28 14:22:47
 LastEditors: cuipu g050505@gmail.com
 LastEditTime: 2023-05-01 22:25:51
-FilePath: \Demo\FourRelayController.py
-Description: 四路继电器控制
+FilePath: \Demo\MultipleController.py
+Description: 多路继电器控制
 
 接线方式：
     DC+：正极/5V 左边
@@ -427,7 +427,7 @@ Description: 四路继电器控制
 需要电压：5V
 
 '''
-class FourRelayController:
+class MultipleController:
     def __init__(self, relay_pins, active_high=True):
         # 初始化继电器引脚
         self.relays = []
