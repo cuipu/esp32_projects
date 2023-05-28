@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-23 00:31:38
+LastEditTime: 2023-05-29 00:13:36
 FilePath: \esp32_projects\esp32_ha_devices\c_devices.py
 Description: 
 
@@ -400,6 +400,127 @@ class Relay:
             self.relay_pin.off()
         else:
             self.relay_pin.on()
+
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-04-28 14:22:47
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-05-01 22:25:51
+FilePath: \Demo\FourRelayController.py
+Description: 四路继电器控制
+
+接线方式：
+    DC+：正极/5V 左边
+    DC-：负极/GND 中间
+    IN：GPIO 右边
+
+    COM：公共端
+    NO（normal open 开路）：常开端，就是继电器不通电，这端和COM端是断开的，不连通。通电后，和COM端是连通。
+    NC（normal close 闭合）：常闭端，就是继电器不通电，这个端和COM公共端是连通的，触点是闭合的，开关是关闭的。通电后，这端和COM端是断开的
+
+    接 NO 和 COM，不通电时开路，通电时闭合
+    接 NC 和 COM，不通电时闭合，通电时开路
+
+
+
+硬件：
+需要电压：5V
+
+'''
+class FourRelayController:
+    def __init__(self, relay_pins, active_high=True):
+        # 初始化继电器引脚
+        self.relays = []
+        for pin_num in relay_pins:
+            pin = Pin(pin_num, Pin.OUT)
+            self.relays.append(pin)
+        
+        # 根据高低电平触发设置默认状态
+        if active_high:
+            default_state = 0  # 高电平触发时默认关闭
+        else:
+            default_state = 1  # 低电平触发时默认关闭
+            
+        self.state = [default_state] * len(relay_pins)
+        
+        # 记录高低电平触发
+        self.active_high = active_high
+
+    def set_relay_state(self, relay_num, state):
+        """
+        设置继电器状态
+        
+        Args:
+            relay_num (int): 继电器编号（从1开始）
+            state (int): 继电器状态，0为关闭，1为打开
+        """
+        if relay_num < 1 or relay_num > len(self.relays):
+            raise ValueError("Invalid relay number")
+        
+        if self.active_high:
+            self.relays[relay_num - 1].value(state)
+        else:
+            self.relays[relay_num - 1].value(1 - state)
+        
+        self.state[relay_num - 1] = state
+    
+    def get_relay_state(self, relay_num):
+        """
+        获取继电器状态
+        
+        Args:
+            relay_num (int): 继电器编号（从1开始）
+        
+        Returns:
+            int: 继电器状态，0为关闭，1为打开
+        """
+        if relay_num < 1 or relay_num > len(self.relays):
+            raise ValueError("Invalid relay number")
+        
+        return self.state[relay_num - 1]
+    
+    def toggle_relay_state(self, relay_num):
+        """
+        切换继电器状态
+        
+        Args:
+            relay_num (int): 继电器编号（从1开始）
+        """
+        if relay_num < 1 or relay_num > len(self.relays):
+            raise ValueError("Invalid relay number")
+        
+        state = 1 - self.state[relay_num - 1]
+        self.set_relay_state(relay_num, state)
+    
+    def toggle_all_relays(self):
+        """切换所有继电器状态"""
+        for i in range(1, len(self.relays) + 1):
+            self.toggle_relay_state(i)
+    
+    def turn_on_all_relays(self):
+        """打开所有继电器"""
+        for i in range(1, len(self.relays) + 1):
+            self.set_relay_state(i, 1)
+    
+    def turn_off_all_relays(self):
+        """关闭所有继电器"""
+        for i in range(1, len(self.relays) + 1):
+            self.set_relay_state(i, 0)
+
+
+'''
+# 示例用法
+relay_pins = [2, 3, 4, 5]  # 假设继电器连接到GPIO引脚2、3、4和5
+4 18 17 5
+controller = FourRelayController(relay_pins)
+
+# 控制第一个继电器打开
+controller.set_relay_state(1, 1)
+sleep(1)
+
+# 控制第一个继电器关闭
+controller.set_relay_state(1, 0)
+'''
 
 
 '''
