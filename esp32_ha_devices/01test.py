@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-05 23:03:28
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-18 14:38:44
-FilePath: \esp32_projects\my_ha_devices\01test.py
+LastEditTime: 2023-06-21 00:49:02
+FilePath: \esp32_projects\esp32_ha_devices\01test.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
@@ -16,9 +16,18 @@ import _thread
 import machine
 from umqttsimple import MQTTClient
 
+try:
+    import ujson as json
+except:
+    import json
+
+import temperature_sensor_config
+
 # WiFi配置
-WIFI_NAME = 'TP-LINK_502_2.4G'
+WIFI_NAME = 'AX6K'
 WIFI_PASSWORD = '1234567890...'
+
+CONFIG_PATH = 'temperature_sensor_config.json'
 
 # MQTT连接信息
 MQTT_BROKER = '192.168.2.80'
@@ -132,94 +141,40 @@ def esp32160lcd_test():
     es.show_msg("first_row", "second_row")
 
 # WiFi配置
-WIFI_NAME = 'TP-LINK_502_2.4G'
+WIFI_NAME = 'AX6K'
 WIFI_PASSWORD = '1234567890...'
 
 # MQTT连接信息
-MQTT_BROKER = '192.168.2.80'
-MQTT_PORT = 1883
-MQTT_USER = 'test'
-MQTT_PASSWORD = '1234560.'
-MQTT_COMMAND_TOPIC = 'HA-esp32-relay/switch/set'
-MQTT_STATE_TOPIC='HA-esp32-relay/switch/state'
+
 
 # 继电器连接信息
 RELAY_PIN = 22  # 请根据你的实际连接修改引脚号
 RELAY_ON = 1  # 继电器打开状态（高电平）
 RELAY_OFF = 0  # 继电器关闭状态（低电平）
 
-class TestHaMqtt:
-    def __init__(self):
-        # 初始化继电器控制引脚
-        #self.relay = machine.Pin(RELAY_PIN, machine.Pin.OUT)
-        #self.relay.value(RELAY_OFF)  # 初始状态为关闭
-        self.relay = c_devices.Relay(RELAY_PIN)
 
-        wifi = WiFiUtil()
-        wifi.do_connect(WIFI_NAME, WIFI_PASSWORD)
-
-        # 连接MQTT代理服务器
-        self.mqtt_client = MQTTClient("esp32-test", MQTT_BROKER, port=MQTT_PORT,
-                                user=MQTT_USER, password=MQTT_PASSWORD)
-        self.mqtt_client.set_callback(self.mqtt_callback)
-        self.mqtt_client.connect()
-        self.mqtt_client.subscribe(MQTT_COMMAND_TOPIC)
-        print('MQTT connected')
-
-
-    # MQTT消息处理函数
-    def mqtt_callback(self,topic, msg):
-        print('topic: ' ,topic)
-        if topic == MQTT_COMMAND_TOPIC.encode():
-            if msg == b'ON':
-                self.relay.on()
-                self.mqtt_client.publish(MQTT_STATE_TOPIC, 'ON')
-                print('relay is opened')
-            elif msg == b'OFF':
-                self.relay.off()
-                self.mqtt_client.publish(MQTT_STATE_TOPIC, 'OFF')
-                print('relay is closed')
-
-    def test_ha_mqtt(self):
+def wifi_test():
+    port = temperature_sensor_config.mqtt_config['port']
+    print(str(port))
   
-        # 循环处理MQTT消息
-        while True:
-            self.mqtt_client.check_msg()
-            time.sleep(0.5)
-# 定义共享变量和锁
-running = True
-running_lock = _thread.allocate_lock()
+    config_json = ''
+    with open(CONFIG_PATH, 'r+') as f:
+        config_json = json.loads(f.read())
+        f.close()
 
-# 定义线程的主循环
-def thread_func():
-    while True:
-        with running_lock:
-            if not running:
-                break
-        print("Thread is running...")
-        time.sleep(1)
-    print("Thread stopped")
+    print(int(config_json["mqtt"]["port"]))
 
-def test_ultrasonicDistanceSensor():
-    ultrasonicDistanceSensor =  c_devices.UltrasonicDistanceSensor(19,18)
-    while True:
-        distance = ultrasonicDistanceSensor.do_measure()
-        print(distance)
-        time.sleep(0.1)
+    wifi = WiFiUtil()
+    wifi_list = wifi.get_wifi_information_list()
+    print(wifi_list)
+    wifi.do_connect(config_json["wifi"]["ssid"], config_json["wifi"]["password"])
+
+
+
 
 def main():
     
-
-    m =  MultiThreadUtil()
-    thread_id = m.start_new_thread(test_ultrasonicDistanceSensor)
-    print(thread_id)
-
-    thread_func()
-    time.sleep(5)
-    running = False
-    # 停止线程的执行
-    with running_lock:
-        running = False
+    wifi_test()
 
 
 if __name__ == "__main__":

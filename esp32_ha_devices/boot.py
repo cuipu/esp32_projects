@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-06 19:35:50
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-13 16:40:05
-FilePath: \esp32_projects\my_ha_devices\boot.py
+LastEditTime: 2023-06-20 23:33:38
+FilePath: \esp32_projects\esp32_ha_devices\boot.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 

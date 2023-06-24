@@ -1,4 +1,4 @@
-from c_utils import WiFiUtil,MultiThreadUtil
+from c_utils import WiFiUtil,MultiThreadUtil,DNSResolver
 from c_devices import Relay,UltrasonicDistanceSensor
 from umqttsimple import MQTTClient
 from machine import Pin
@@ -213,15 +213,19 @@ class Car:
 
 
 # WiFi配置
-WIFI_NAME = 'TP-LINK_502_2.4G'
-WIFI_PASSWORD = '1234567890...'
+#WIFI_SSID = 'AX6K'
+#WIFI_PASSWORD = '1234567890...'
+WIFI_SSID = 'ES-858805'
+WIFI_PASSWORD = '12345678'
 
 # MQTT 服务器配置
 MQTTT_CLIENT_ID = 'esp32-car'
-MQTT_SERVER = '192.168.2.80'
+#MQTT_SERVER = '192.168.2.80'
 MQTT_PORT = 1883
 MQTT_USER = 'test'
 MQTT_PASSWORD = '1234560.'
+
+DOMAIN = 'www.cuipu.net'
 
 MQTT_COMMAND_TOPIC_CONTROL_CAR = 'control car'
 MQTT_CLIENT_CHECK_MSG_FREQ_MS = 50
@@ -260,9 +264,11 @@ class CarController():
 
     def init_wifi(self):
         self.wifi_util = WiFiUtil()
-        self.wifi_util.do_connect(WIFI_NAME,WIFI_PASSWORD)
+        self.wifi_util.do_connect(WIFI_SSID,WIFI_PASSWORD)
 
     def init_mqtt(self):
+        # 获取公网IP地址
+        MQTT_SERVER = DNSResolver.get_public_ip(DOMAIN)
         # 连接MQTT代理服务器
         self.mqtt_client = MQTTClient(MQTTT_CLIENT_ID, MQTT_SERVER, port=MQTT_PORT,
                                 user=MQTT_USER, password=MQTT_PASSWORD)

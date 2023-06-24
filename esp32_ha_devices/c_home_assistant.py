@@ -2,23 +2,27 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-13 16:38:37
-FilePath: \esp32_projects\my_ha_devices\c_home_assistant.py
+LastEditTime: 2023-06-21 00:17:47
+FilePath: \esp32_projects\esp32_ha_devices\c_home_assistant.py
 Description:
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 '''
 import time
-import ujson
+try:
+    import ujson as json
+except:
+    import json
+
 from c_utils import FileUtil, WiFiUtil, MultiThreadUtil
 from umqttsimple import MQTTClient
 # import config
 
 # 内存不够，不从文件加载配置
-ESP32_CONFIT = './esp32_config.txt'
+CONFIG_PATH = './temperature_sensor_config.json'
 
 # WiFi配置
-WIFI_NAME = 'TP-LINK_502_2.4G'
+WIFI_SSID = 'AX6K'
 WIFI_PASSWORD = '1234567890...'
 
 # MQTT 服务器配置
@@ -61,6 +65,8 @@ class IHomeAssistant():
 class AbstractHomeAssistantDevice():
     def __init__(self):
 
+        self.config = ''
+
         self.mqtt_server = None
         self.mqtt_port = None
         self.mqtt_user = None
@@ -69,7 +75,7 @@ class AbstractHomeAssistantDevice():
 
         self.mqtt_client = None
 
-        self.wifi_name = None
+        self.wifi_ssid = None
         self.wifi_password = None
         self.wifi_utils = None
 
@@ -83,7 +89,7 @@ class AbstractHomeAssistantDevice():
         description: 初始化加载方法，定义了模板
         return {*}
         '''
-        # self.load_config()
+        self.load_config()
         self.init_device_info()
         self.init_wifi()
         self.init_mqtt()
@@ -106,9 +112,13 @@ class AbstractHomeAssistantDevice():
         self.device_config_json = ujson.loads(self.device_config_str)
         print('device_config_json : \n', self.device_config_str)
         '''
+        
+        with open(CONFIG_PATH, 'r+') as f:
+            self.config = json.loads(f.read())
+            f.close()
         # wifi_ssid = config.wifi_config["ssid"]
         # wifi_password = config.wifi_config["password"]
-        pass
+        # pass
 
     def init_device_info(self, homeassistant_device_name: str = None,
                          homeassistant_device_sensor_name: str = None, homeassistant_device_sensor_type: str = None):
@@ -136,16 +146,25 @@ class AbstractHomeAssistantDevice():
         description: 初始化WiFi
         return {*}
         '''
-        self.wifi_name = WIFI_NAME
+        # self.wifi_ssid = config["wifi"]["ssid"] 
+        # self.wifi_password = config["wifi"]["password"]
+
+        self.wifi_ssid = WIFI_SSID
         self.wifi_password = WIFI_PASSWORD
 
         self.wifi_utils = WiFiUtil()
-        self.wifi_utils.do_connect(self.wifi_name, self.wifi_password)
+        self.wifi_utils.do_connect(self.wifi_ssid, self.wifi_password)
 
     def init_mqtt(self):
         '''
         description: 初始化mqtt
         return {*}
+        
+        self.mqtt_server = config["MQTT_SERVER"]
+        self.mqtt_port = int(config["MQTT_PORT"])
+        self.mqtt_user = config["MQTT_USER"]
+        self.mqtt_password = config["MQTT_PASSWORD"]
+        self.mqtt_keepalive = int(config["MQTT_PASSWORD"])
         '''
         self.mqtt_server = MQTT_SERVER
         self.mqtt_port = MQTT_PORT

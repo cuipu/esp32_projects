@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-24 12:06:13
+LastEditTime: 2023-06-24 22:36:21
 FilePath: \esp32_projects\esp32_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -557,11 +557,11 @@ class DNSResolver:
 
 
 # WiFi配置
-WIFI_NAME = 'TP-LINK_502_2.4G'
-WIFI_PASSWORD = '1234567890...'
+WIFI_SSID = 'ES-858805'
+WIFI_PASSWORD = '12345678'
 def test():
     wifi = WiFiUtil()
-    wifi.do_connect(WIFI_NAME, WIFI_PASSWORD)
+    wifi.do_connect(WIFI_SSID, WIFI_PASSWORD)
     domain = 'www.cuipu.net'
     public_ip = DNSResolver.get_public_ip(domain)
     if public_ip:
