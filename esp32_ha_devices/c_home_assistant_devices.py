@@ -89,6 +89,16 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
         # print(topic, msg)
 
     def do_work(self):
+        while True:
+            device, temperature = self.ds18b20_temperature_sensor.collect_temperature_result()
+            self.do_mqtt_publish_device_msg(str(temperature))
+            self.esp32160lcd.show_msg("temperature: ", str(temperature))
+            if temperature > OVER_WARINING_TEMPERATURE:
+                self.passive_buzzer.play_mario()
+            time.sleep(TEMPERATURE_SEND_MSG_FREQ)
+            self.esp32160lcd.clear_msg()
+            
+        '''  
         try:
             while True:
                 device, temperature = self.ds18b20_temperature_sensor.collect_temperature_result()
@@ -104,7 +114,7 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
             print(f"Exception occurred: {e}")
         finally:
             sys.exit()
-
+        '''
 
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work)
@@ -173,6 +183,11 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             self.relay.off()
 
     def do_work(self):
+        while True:
+                self.mqtt_client.check_msg()
+                # 控制检测MQTT的频率
+                time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
+        '''
         try:
             while True:
                 self.mqtt_client.check_msg()
@@ -192,9 +207,10 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             print(f"Exception occurred: {e}")
             sys.print_exception(e)
         finally:
-            print('system exit')
-            sys.exit()
-
+            time.sleep(10)
+            # 重启设备
+            machine.reset()
+        '''
     def multi_thread_start_device(self):
         self.multi_thread_util.start_new_thread(self.do_work)
 

@@ -16,6 +16,8 @@ Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 from c_esp32_cam import ESP32Cam
 import sys
 import uerrno
+import time
+import machine
 
 CLIENT_IP = '192.168.2.10'
 CLIENT_PORT = 9000
@@ -39,8 +41,9 @@ def main():
         print(f"Exception occurred: {e}")
         sys.print_exception(e)
     finally:
-        print('system exit')
-        sys.exit()
+        time.sleep(10)
+        # 重启设备
+        machine.reset()
 
 
 if __name__ == "__main__":  

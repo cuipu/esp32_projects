@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-06 19:35:50
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-23 00:35:33
+LastEditTime: 2023-07-03 22:32:48
 FilePath: \esp32_projects\esp32_car\boot.py
 Description: 
 
@@ -11,6 +11,8 @@ Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 from c_car import CarController
 import sys
 import uerrno
+import time
+import machine
 
 
 # This file is executed on every boot (including wake-boot from deepsleep)
@@ -34,8 +36,9 @@ def main():
         print(f"Exception occurred: {e}")
         sys.print_exception(e)
     finally:
-        print('system exit')
-        sys.exit()
+        time.sleep(10)
+        # 重启设备
+        machine.reset()
 
 
 if __name__ == "__main__":
