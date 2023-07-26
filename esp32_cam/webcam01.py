@@ -1,3 +1,13 @@
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-05-20 09:40:04
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-07-26 11:04:22
+FilePath: \esp32_projects\esp32_cam\webcam01.py
+Description: 
+
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+'''
 
 import time, network, ntptime
 from microdot import Microdot
@@ -28,7 +38,7 @@ led_blink_timed(timer, led_pin, state='INIT')
 
 
 # 填上 Wi-Fi 连线信息
-WIFI_SSID = 'TP-LINK_502_2.4G'
+WIFI_SSID = 'AX6K-5G'
 WIFI_PASSWORD = '1234567890...'
 
 def connect_WiFi():

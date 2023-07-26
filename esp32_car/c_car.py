@@ -213,10 +213,10 @@ class Car:
 
 
 # WiFi配置
-#WIFI_SSID = 'AX6K'
-#WIFI_PASSWORD = '1234567890...'
-WIFI_SSID = 'ES-858805'
-WIFI_PASSWORD = '12345678'
+WIFI_SSID = 'AX6K'
+WIFI_PASSWORD = '1234567890...'
+#WIFI_SSID = 'ES-858805'
+#WIFI_PASSWORD = '12345678'
 
 # MQTT 服务器配置
 MQTTT_CLIENT_ID = 'esp32-car'
@@ -354,24 +354,18 @@ class CarController():
     def do_work(self):
         front_distance = DISTANCE_LIMIT + 1
         print('front_distance: {}'.format(front_distance))
-        try:
-            # self.distance_thread = _thread.start_new_thread(self.test_distance_limit, ())  # 启动距离监测线程
-            while True:
-                front_distance = self.ultrasonic_distance_sensor.do_measure()
-                print('front_distance: ',front_distance)
-                # 容易测量不准，导致测量距离为负数，所以加上大于0判断，要不会造成卡顿
-                if (front_distance > 0) and (front_distance < 50):
-                    if (front_distance < DISTANCE_LIMIT) :
-                        # 不应该是停止，应该是不能继续前进
-                        self.car.move_backward()
-                self.mqtt_client.check_msg()
-                time.sleep_ms(MQTT_CLIENT_CHECK_MSG_FREQ_MS)
-        except MemoryError:
-            print("Memory error occurred. Restarting...")
-        except Exception as e:
-            print(f"Exception occurred: {e}")
-        finally:
-            sys.exit()
+        # self.distance_thread = _thread.start_new_thread(self.test_distance_limit, ())  # 启动距离监测线程
+        while True:
+            front_distance = self.ultrasonic_distance_sensor.do_measure()
+            print('front_distance: ',front_distance)
+            # 容易测量不准，导致测量距离为负数，所以加上大于0判断，要不会造成卡顿
+            if (front_distance > 0) and (front_distance < 50):
+                if (front_distance < DISTANCE_LIMIT) :
+                    # 不应该是停止，应该是不能继续前进
+                    self.car.move_backward()
+            self.mqtt_client.check_msg()
+            time.sleep_ms(MQTT_CLIENT_CHECK_MSG_FREQ_MS)
+  
     
     def test_distance_limit(self):
         '''
@@ -382,19 +376,14 @@ class CarController():
             None
         TODO 线程无法随着relay的on和off自动关停，留着后续修改，子线程启动后会无辜停止
         '''
-        
-        try:
-            distance = DISTANCE_LIMIT + 1  # 初始化变量为超出距离限制的值
-            while True:
-                distance = self.ultrasonic_distance_sensor.do_measure()
+        distance = DISTANCE_LIMIT + 1  # 初始化变量为超出距离限制的值
+        while True:
+            distance = self.ultrasonic_distance_sensor.do_measure()
 
-                print('distance: ', distance) # 容易测量不准，导致测量距离为负数，所以加上大于0判断
-                if (distance < DISTANCE_LIMIT) and (distance > 0):
-                    self.car.move_backward()
-                time.sleep(0.1)
-        except Exception as e:
-            print(f"Exception occurred: {e}")
-            self.car.stop()
+            print('distance: ', distance) # 容易测量不准，导致测量距离为负数，所以加上大于0判断
+            if (distance < DISTANCE_LIMIT) and (distance > 0):
+                self.car.move_backward()
+            time.sleep(0.1)
 
 def car_test():
 

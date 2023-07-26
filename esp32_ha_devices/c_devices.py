@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-29 00:21:50
+LastEditTime: 2023-07-24 01:17:10
 FilePath: \esp32_projects\esp32_ha_devices\c_devices.py
 Description: 
 
@@ -245,14 +245,32 @@ Copyright (c) 2023 by Mr.Cui, All Rights Reserved.
 
 
 class InfraredMotionSensor:
-    def __init__(self, sensor_gpio_num: int):
+    def __init__(self, digital_gpio_num: int):
         # 构建人体红外对象
-        self.sensor_pin = machine.Pin(sensor_gpio_num, Pin.IN)
+        self.digital_pin = machine.Pin(digital_gpio_num, Pin.IN)
         self.hander = None
-        
-    def set_hander(self, hander, *args):
+
+    def is_motion_detected(self):
+        """
+        检测是否有人体存在
+
+        返回值：
+        - True：检测到人体存在
+        - False：未检测到人体
+        """
+        value = self.digital_pin.value()  # 读取数字输出引脚的状态
+        return value == 1
+  
+    def set_hander(self, hander):
+        """
+        设置终端回调函数，当数字输出引脚状态发生变化时调用该函数
+
+        参数：
+        - handler: 终端回调函数，接受一个参数（数字输出引脚的状态）
+        - 在MicroPython中，IRQ_RISING是电平升高时触发，而IRQ_FALLING是电平下降时触发
+        """
         self.hander = hander
-        self.sensor_pin.irq(handler=self.hander, trigger=Pin.IRQ_RISING)
+        self.digital_pin.irq(handler=self.hander, trigger=Pin.IRQ_RISING)
 
 
 '''
@@ -666,6 +684,71 @@ class LightSensor:
         """
         self.hander = hander
         self.digital_pin.irq(handler=self.hander, trigger=Pin.IRQ_RISING)
+
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-04-30 11:24:49
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-04-30 17:32:39
+FilePath: \Demo\c_photosensitive_sensor.py
+Description: 三引脚光敏传感器
+
+硬件：
+需要电压：3.3V
+
+注意:
+    AO引脚只能接ESP32上面带ADCO输出的
+    建议AO接左边引脚，DO接右边引脚
+
+Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
+'''
+class LightSensorThreePin:
+    def __init__(self, digital_gpio_num: int):
+        """
+        初始化光敏电阻类
+
+        参数：
+        - digital_gpio_num: 光敏电阻数字输出（DO）连接到的引脚
+        """
+        # 数字量
+        self.digital_pin = Pin(digital_gpio_num, Pin.IN)
+        # 只要有变动，就会调用handler回调函数
+        self.handler = None
+
+        self.threshold = None
+
+    def read_light_digital(self):
+        """
+        读取光敏电阻的数字输出（DO）值
+
+        返回值：
+        - 数字输出引脚的状态（高电平为1，低电平为0）
+        """
+        value = self.digital_pin.value()  # 读取数字输出引脚的状态
+        return value
+
+    def set_threshold(self, threshold):
+        """
+        设置光敏电阻的阈值
+
+        参数：
+        - threshold: 光照强度的阈值
+
+        注意：
+        - 阈值可以根据实际需求进行调整
+        """
+        self.threshold = threshold
+
+    def set_handler(self, handler):
+        """
+        设置终端回调函数，当数字输出引脚状态发生变化时调用该函数
+
+        参数：
+        - handler: 终端回调函数，接受一个参数（数字输出引脚的状态）
+        - 在MicroPython中，IRQ_RISING是电平升高时触发，而IRQ_FALLING是电平下降时触发
+        """
+        self.handler = handler
+        self.digital_pin.irq(handler=self.handler, trigger=Pin.IRQ_RISING)
         
 '''
 Author: cuipu g050505@gmail.com
