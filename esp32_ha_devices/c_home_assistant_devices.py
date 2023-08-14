@@ -225,7 +225,7 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             self.relay.on()
             self.mqtt_client.publish(
                 self.homeassistant_switch_state_topic, "ON")
-            time.sleep(10)
+            time.sleep(5)
             self.relay.off()
             self.mqtt_client.publish(
                 self.homeassistant_switch_state_topic, "OFF")

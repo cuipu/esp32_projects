@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-07-24 01:17:10
+LastEditTime: 2023-08-14 20:47:43
 FilePath: \esp32_projects\esp32_ha_devices\c_devices.py
 Description: 
 

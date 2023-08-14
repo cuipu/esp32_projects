@@ -2,8 +2,8 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-07-23 23:40:05
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-07-24 23:33:36
-FilePath: \esp32_projects\esp32_ha_devices\boot-box.py
+LastEditTime: 2023-08-14 20:51:30
+FilePath: \esp32_projects\esp32_ha_devices\min_box.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
@@ -46,20 +46,31 @@ class MinBox():
 
     def do_work(self):
         while(True):
-            device, temp = self.c_Ds18b20TemperatureSensor.collect_temperature_result()
-            light_digital = self.c_LightSensorThreePin.read_light_digital()
-            print(temp)
-            is_motion_detected = self.c_InfraredMotionSensor.is_motion_detected()
-            print(is_motion_detected)
-            #c_Relay.on()
-            self.c_ESP32160lcd.show_msg(temp,light_digital)
+            self.device, self.temp = self.c_Ds18b20TemperatureSensor.collect_temperature_result()
+            self.light_digital = self.c_LightSensorThreePin.read_light_digital()
+            print(self.temp)
+            self.is_motion_detected = self.c_InfraredMotionSensor.is_motion_detected()
+            print(self.is_motion_detected)
+            self.c_ESP32160lcd.clear_msg()
+            self.c_ESP32160lcd.show_msg("Temp: " + str(self.temp),str(self.is_motion_detected) + " " + str(self.light_digital))
             time.sleep(1)
             self.c_ESP32160lcd.clear_msg()
-            #c_Relay.off()
 
-    def infraredMotionSensor_hander(self):
-        print("infraredMotionSensor_handel")
+    def infraredMotionSensor_hander(self,*arges):
+        if "0" == self.light_digital:
+            print("light_digital: " + self.light_digital)
+            return
+        else:
+            self.c_Relay.on()
+            for i in range(5):
+                self.c_ESP32160lcd.clear_msg()
+                self.c_ESP32160lcd.show_msg("Temp: " + str(self.temp),"Light: on")
+                time.sleep(1)
+                self.c_ESP32160lcd.clear_msg()
+            self.c_Relay.off()
+            self.c_ESP32160lcd.show_msg("Temp: " + str(self.temp),"Light: off")
 
+'''
 def main():
     try:
         min_box = MinBox()
@@ -81,3 +92,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''
