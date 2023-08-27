@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-08-27 21:42:58
+LastEditTime: 2023-08-27 22:17:34
 FilePath: \esp32_projects\esp32_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -92,7 +92,7 @@ class WiFiUtil:
         else:
             print("WiFi connection timeout")
 
-    def is_isconnected(self):
+    def is_connected(self):
         '''
         判断是否连接网络
         '''

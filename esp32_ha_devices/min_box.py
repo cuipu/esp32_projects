@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-07-23 23:40:05
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-08-27 21:53:20
+LastEditTime: 2023-08-27 22:18:33
 FilePath: \esp32_projects\esp32_ha_devices\min_box.py
 Description: 
 
@@ -59,14 +59,14 @@ class MinBox():
         self.current_datetime_hms = "00:00:00"
 
         self.timer = Timer(1)
-        self.timer.init(period=1000 * 60 * 60 * 1, mode=Timer.PERIODIC, callback=self.sync_time_by_wifi)
+        self.timer.init(period=1000 * 60 * 60 * 1, mode=Timer.PERIODIC, callback=self.synchronize_time_with_wifi)
         self.wifi_util = WiFiUtil()
         self.time_util = TimeUtil()
         self.multiThreadUtil = MultiThreadUtil()
 
     def do_work(self):
-        #self.multiThreadUtil.start_new_thread(self.sync_time_by_wifi)
-        self.sync_time_by_wifi()
+        #self.multiThreadUtil.start_new_thread(self.synchronize_time_with_wifi)
+        self.synchronize_time_with_wifi()
         
         while(True):
             self.read_data_from_sensor()
@@ -109,10 +109,10 @@ class MinBox():
         self.light_digital = self.c_LightSensorThreePin.read_light_digital()
         self.is_motion_detected = self.c_InfraredMotionSensor.is_motion_detected()
 
-    def sync_time_by_wifi(self):       
+    def synchronize_time_with_wifi(self):       
         if not self.wifi_is_connected_flag:
             self.wifi_util.do_connect(WIFI_SSID, WIFI_PASSWORD)
-            if self.wifi_util.is_isconnected():
+            if self.wifi_util.is_connected():
                 self.wifi_is_connected_flag = True
                 self.time_util.synchronised_local_time()
         else:
