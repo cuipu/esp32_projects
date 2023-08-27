@@ -110,7 +110,7 @@ class MinBox():
         self.is_motion_detected = self.c_InfraredMotionSensor.is_motion_detected()
 
     def sync_time_by_wifi(self):       
-        if (not self.wifi_is_connected_flag):
+        if not self.wifi_is_connected_flag:
             self.wifi_util.do_connect(WIFI_SSID, WIFI_PASSWORD)
             if self.wifi_util.is_isconnected():
                 self.wifi_is_connected_flag = True
