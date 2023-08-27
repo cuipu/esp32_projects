@@ -610,7 +610,7 @@ LastEditTime: 2023-04-30 17:32:39
 FilePath: \Demo\c_photosensitive_sensor.py
 Description: 光敏传感器
 
-硬件：
+硬件：stm32
 需要电压：3.3V
 
 注意:
@@ -693,8 +693,10 @@ LastEditTime: 2023-04-30 17:32:39
 FilePath: \Demo\c_photosensitive_sensor.py
 Description: 三引脚光敏传感器
 
-硬件：
+硬件：stm32
 需要电压：3.3V
+
+参考： https://blog.csdn.net/m0_46573394/article/details/112617767
 
 注意:
     AO引脚只能接ESP32上面带ADCO输出的

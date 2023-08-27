@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-06-24 22:36:21
+LastEditTime: 2023-08-27 21:42:58
 FilePath: \esp32_projects\esp32_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -20,6 +20,7 @@ import ujson
 import gc
 import usocket
 import ntptime
+from machine import Timer
 
 #import ulogging as logging
 #logging.basicConfig(level=logging.INFO)
@@ -30,26 +31,28 @@ import ntptime
 只能在 STA 模式下进行扫描，使用元组列表的形式返回 WiFi 接入点的相关信息。
 （ssid, bssid, channel, rssi, authmode, hidden）
 """
-
-
 class WiFiUtil:
 
-    '''
-    description: 初始化
-    param {*} self
-    param {*} wifi_ssid WiFi名称
-    param {*} wifi_password WiFi密码 
-    return {*}
-    '''
+
 
     def __init__(self):
+        '''
+        description: 初始化
+        param {*} self
+        param {*} wifi_ssid WiFi名称
+        param {*} wifi_password WiFi密码 
+        return {*}
+        '''
         self.wifi_ssid = ''
         self.wifi_password = ''
         self.wlan = network.WLAN(network.STA_IF)
         self.wlan.active(True)
         self.wifi_config = None
 
-    def do_connect(self, wifi_ssid: str, wifi_password: str):
+    def do_connect(self, wifi_ssid: str, wifi_password: str,timeout=15):
+        '''
+        连接网络
+        
         self.wifi_ssid = wifi_ssid
         self.wifi_password = wifi_password
         if not self.wlan.isconnected():
@@ -60,15 +63,46 @@ class WiFiUtil:
                 print("connecting...{}".format(i))
                 i += 1
                 time.sleep(1)
+                if (i >= timeout):
+                    print("WiFi connection timeout")
+                    return
         self.wifi_config = self.wlan.ifconfig()
         self.show_current_wifi_config()
+        '''
 
-    '''
-    description: 显示当前连接的WiFi信息
-    return {*}
-    '''
+        '''
+        连接网络，添加超时逻辑
+        '''
+        self.wifi_ssid = wifi_ssid
+        self.wifi_password = wifi_password
+        if not self.wlan.isconnected():
+            print('connect network...')
+            self.wlan.connect(wifi_ssid, wifi_password)
+
+            # 等待最多timeout秒直到连接成功或超时
+            i = 1
+            while not self.wlan.isconnected() and i < timeout:
+                print("connecting...{}".format(i))
+                i += 1
+                time.sleep(1)
+
+        if self.wlan.isconnected():
+            self.wifi_config = self.wlan.ifconfig()
+            self.show_current_wifi_config()
+        else:
+            print("WiFi connection timeout")
+
+    def is_isconnected(self):
+        '''
+        判断是否连接网络
+        '''
+        return self.wlan.isconnected()
 
     def get_current_wifi_config(self):
+        '''
+        description: 显示当前连接的WiFi信息
+        return {*}
+        '''
         if not self.wlan.isconnected():
             self.do_connect(wifi_ssid, wifi_password)
             self.wifi_config = self.wlan.ifconfig()
@@ -87,22 +121,22 @@ class WiFiUtil:
             print("WiFi config is\n ip: {} \n subnet mask: {}\n gateway:{}\n broadcast address: {}\n".format(
                 self.wifi_config[0], self.wifi_config[1], self.wifi_config[2], self.wifi_config[3]))
 
-    '''
-    description: 获取当前WiFi 详细信息列表
-    return {*}
-    '''
+
 
     def get_wifi_information_list(self):
-
+        '''
+        description: 获取当前WiFi 详细信息列表
+        return {*}
+        '''
         # eg: [b'TP-LINK_502_2.4G', b'ChinaNet-IaEh', b'TP-LINK_1DE0', b'TP-LINK_397D', b'CU-101', b'', b'CU_43Lc', b'@PHICOMM_98', b'201', b'102', b'TP-LINK_7252', b'501', b'602', b'Tenda88898', b'HONOR-510MM1']
         return self.wlan.scan()
 
-    '''
-    description: 获取当前WiFi名称列表
-    return {*}
-    '''
 
     def show_wifi_ssid_list(self):
+        '''
+        description: 获取当前WiFi名称列表
+        return {*}
+        '''
         wifi_information_list = self.wlan.scan()
         wifi_ssid_list = []
         wifi_ssid = ''
@@ -459,6 +493,22 @@ class TimeUtil:
             year, month, day, hour, minute, second
         )
         return formatted_datetime
+    
+    def format_datetime_hms(self, timestamp):
+        """
+        格式化时间戳为"HH:mm:ss"格式的字符串
+
+        参数:
+        - timestamp: 时间戳
+
+        返回值:
+        - 格式化后的时间字符串
+        """
+        year, month, day, hour, minute, second, _, _ = utime.localtime(timestamp)
+        formatted_datetime = "{:02d}:{:02d}:{:02d}".format(
+            hour, minute, second
+        )
+        return formatted_datetime
 
    
     def get_current_timestamp(self):
@@ -482,15 +532,32 @@ class TimeUtil:
         current_datetime = self.format_datetime(current_timestamp)
         return current_datetime
 
+    def get_current_datetime_hms(self):
+        """
+        获取当前时间的格式化字符串"HH:mm:ss"
+
+        返回值:
+        - 当前时间的格式化字符串
+        """
+        current_timestamp = self.get_current_timestamp()
+        current_datetime = self.format_datetime_hms(current_timestamp)
+        return current_datetime
+
     def synchronised_local_time(self):
         """
         同步本地时间，需要先联网
         """
-        ntptime.NTP_DELTA = ntptime.NTP_DELTA - 8*60*60 # UTC+8 
-        ntptime.settime()
-        #print("同步后本地时间：%s" %str(time.localtime()))  
-        print("同步后本地时间：%s" %str(self.get_current_datetime()))  
+        ntptime.NTP_DELTA = 3155644800  # 可选 UTC+8偏移时间（秒），不设置就是UTC0
+        ntptime.host = 'ntp1.aliyun.com'  # 可选，ntp服务器，默认是"pool.ntp.org" 这里使用阿里服务器
+        ntptime.settime()  # 修改设备时间,到这就已经设置好了
         return self.get_current_datetime()
+
+    def synchronised_time_every_seven_hours(self):
+        """
+        定时任务:每个7小时重新同步一次时间
+        """
+        timer = Timer(1)
+        timer.init(period=1000 * 60 * 60 * 7, mode=Timer.PERIODIC, callback=sync_ntp)
         
 def time_util_test():
     time_util = TimeUtil()
@@ -557,8 +624,8 @@ class DNSResolver:
 
 
 # WiFi配置
-WIFI_SSID = 'ES-858805'
-WIFI_PASSWORD = '12345678'
+WIFI_SSID = 'AX6K'
+WIFI_PASSWORD = '1234567890...'
 def test():
     wifi = WiFiUtil()
     wifi.do_connect(WIFI_SSID, WIFI_PASSWORD)
@@ -568,6 +635,10 @@ def test():
         print("Public IP for domain '{0}': {1}".format(domain, public_ip))
     else:
         print("Failed to retrieve the public IP for domain '{0}'".format(domain))
+    time_util = TimeUtil()
+    time_util.synchronised_local_time()
+    current_timestamp = time_util.get_current_timestamp()
+    print("current_timestamp: " + time_util.format_datetime(current_timestamp))
 
 
 def main():
