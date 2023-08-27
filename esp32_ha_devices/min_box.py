@@ -100,7 +100,7 @@ class MinBox():
         if(self.wifi_is_connected_flag):
             self.c_ESP32160lcd.show_msg(self.time_util.get_current_datetime_hms(),"Temp: " + str(self.temp))
         else:
-            self.c_ESP32160lcd.show_msg(str(self.is_motion_detected) + " --- " + str(self.light_digital) , ,"Temp: " + str(self.temp))
+            self.c_ESP32160lcd.show_msg(str(self.is_motion_detected) + " --- " + str(self.light_digital),"Temp: " + str(self.temp))
         time.sleep(1)
         self.c_ESP32160lcd.clear_msg()
     
