@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-07-23 23:40:05
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-08-27 22:18:33
+LastEditTime: 2023-09-05 17:45:32
 FilePath: \esp32_projects\esp32_ha_devices\min_box.py
 Description: 
 
@@ -81,17 +81,19 @@ class MinBox():
         else:
             self.c_Relay.on()
             # 循环十五秒，打开继电器
-            for i in range(15):
+            j = 30
+            while(true):
                 self.show_datatime_temp_or_msg()
+                
                 if not self.c_InfraredMotionSensor.is_motion_detected():
-                    break  # 如果在等待时间内没有人，则跳出循环
-
-            # 当检测到没有人的时候，延迟5秒关闭
-            for i in range(5): 
-                self.show_datatime_temp_or_msg() 
-            self.c_Relay.off()
-            # self.c_ESP32160lcd.show_msg("Light: off","Temp: " + str(self.temp))
-            return
+                    j = j - 2
+                else:
+                    j = j - 1
+                if j < 0:
+                    self.c_Relay.off()           
+                    # print("infraredMotionSensor_hander stop ---> is_motion_detected: " + str(self.c_InfraredMotionSensor.digital_pin.value()) + " light_digital: " + str(self.light_digital) + " Temp: " + str(self.temp))
+                    break 
+  
 
     def show_datatime_temp_or_msg(self):
         self.c_ESP32160lcd.clear_msg()

@@ -9,7 +9,7 @@ Description:
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
 '''
 def main():
-    print("Welcome to RT-Thread MicroPython!")
+    print("Welcome to RT-Thread MicroPython!")els
     
 if __name__ == '__main__':
     main()

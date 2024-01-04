@@ -9,9 +9,9 @@ import gc
 import micropython
 
 
-HOMEASSISTANT_DEVICE_NAME = 'esp32-tepmerature'
+HOMEASSISTANT_DEVICE_NAME = 'esp32-temperature'
 
-HOMEASSISTANT_DEVICE_NAME_SENSOR = 'esp32-tepmerature'
+HOMEASSISTANT_DEVICE_NAME_SENSOR = 'esp32-temperature'
 # 名字不能太长
 HOMEASSISTANT_SENSOR_NAME_TEMPERATURE = 'sensor'
 HOMEASSISTANT_SENSOR_TYPE_TEMPERATURE = 'sensor'
