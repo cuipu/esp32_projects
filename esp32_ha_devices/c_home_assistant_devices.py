@@ -1,6 +1,6 @@
 from c_home_assistant import HomeAssistantSensorDevice, HomeAssistantSwitchDevice
 from c_devices import Ds18b20TemperatureSensor, PassiveBuzzer, Relay, ESP32160lcd, InfraredMotionSensor, LightSensor
-from c_utils import MultiThreadUtil
+from c_utils import MultiThreadUtil, TimeUtil
 from umqttsimple import MQTTClient
 import time
 import sys
@@ -55,6 +55,7 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
 
         self.ds18b20_temperature_sensor = None
         self.passive_buzzer = None
+        
 
         self.init()
 
@@ -92,7 +93,7 @@ class HATemperatureSensor(HomeAssistantSensorDevice):
         while True:
             device, temperature = self.ds18b20_temperature_sensor.collect_temperature_result()
             self.do_mqtt_publish_device_msg(str(temperature))
-            self.esp32160lcd.show_msg("temperature: ", str(temperature))
+            self.esp32160lcd.show_msg(self.time_util.get_current_datetime_hms(), "T:" + str(temperature))
             if temperature > OVER_WARINING_TEMPERATURE:
                 self.passive_buzzer.play_mario()
             time.sleep(TEMPERATURE_SEND_MSG_FREQ)

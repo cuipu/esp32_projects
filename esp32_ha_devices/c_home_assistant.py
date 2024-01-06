@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-03 22:24:58
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-06-21 00:17:47
+LastEditTime: 2024-01-06 23:08:29
 FilePath: \esp32_projects\esp32_ha_devices\c_home_assistant.py
 Description:
 
@@ -14,7 +14,7 @@ try:
 except:
     import json
 
-from c_utils import FileUtil, WiFiUtil, MultiThreadUtil
+from c_utils import FileUtil, WiFiUtil, MultiThreadUtil, TimeUtil
 from umqttsimple import MQTTClient
 # import config
 
@@ -80,6 +80,7 @@ class AbstractHomeAssistantDevice():
         self.wifi_utils = None
 
         self.multi_thread_util = MultiThreadUtil()
+        self.time_util = TimeUtil()
 
         self.init()
         
@@ -93,9 +94,12 @@ class AbstractHomeAssistantDevice():
         self.init_device_info()
         self.init_wifi()
         self.init_mqtt()
+        self.sync_ntp()
+
         self.init_ha_device_config_content()
         self.register_device_to_ha()
         self.do_mqtt_subscribe_topic_and_set_callback()
+        
 
     def load_config(self):
         '''
@@ -178,6 +182,9 @@ class AbstractHomeAssistantDevice():
                                       keepalive=self.mqtt_keepalive)
         # 建立连接
         self.mqtt_client.connect()
+
+    def sync_ntp(self):
+        self.time_util.synchronised_local_time()
 
     def register_device_to_ha(self):
         '''
