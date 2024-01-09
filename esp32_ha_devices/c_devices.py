@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-11 22:03:16
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-08-14 20:47:43
+LastEditTime: 2024-01-09 18:44:35
 FilePath: \esp32_projects\esp32_ha_devices\c_devices.py
 Description: 
 
@@ -386,7 +386,7 @@ Description: 继电器控制
 需要电压：5V
 
 Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
-'''
+
 
 class Relay:
     def __init__(self, repay_gpio_num, trigger_high=True):
@@ -418,6 +418,81 @@ class Relay:
             self.relay_pin.off()
         else:
             self.relay_pin.on()
+'''
+
+'''
+Author: cuipu g050505@gmail.com
+Date: 2023-04-28 14:22:47
+LastEditors: cuipu g050505@gmail.com
+LastEditTime: 2023-05-01 22:25:51
+FilePath: \Demo\c_relay.py
+Description: 继电器控制
+
+接线方式：
+    DC+：正极/5V 左边
+    DC-：负极/GND 中间
+    IN：GPIO 右边
+
+    COM：公共端
+    NO（normal open 开路）：常开端，就是继电器不通电，这端和COM端是断开的，不连通。通电后，和COM端是连通。
+    NC（normal close 闭合）：常闭端，就是继电器不通电，这个端和COM公共端是连通的，触点是闭合的，开关是关闭的。通电后，这端和COM端是断开的
+
+    接 NO 和 COM，不通电时开路，通电时闭合
+    接 NC 和 COM，不通电时闭合，通电时开路
+
+硬件：
+需要电压：5V
+
+Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
+'''
+class Relay:
+    def __init__(self, relay_gpio_num, relay_status_pin=None, trigger_high=True):
+        """
+        初始化继电器类
+
+        :param relay_gpio_num: 继电器控制引脚的引脚号
+        :type relay_gpio_num: int
+        :param trigger_high: 继电器是高电平触发还是低电平触发，默认是高电平触发
+        :type trigger_high: bool
+        :param relay_status_pin: 继电器状态引脚的引脚号
+        :type relay_status_pin: int or None
+        """
+        self.relay_pin = Pin(relay_gpio_num, Pin.OUT)
+        self.trigger_high = trigger_high
+        self.relay_status_pin = None
+
+        if relay_status_pin is not None:
+            self.relay_status_pin = Pin(relay_status_pin, Pin.IN)
+
+    def on(self):
+        """
+        继电器打开
+        """
+        if self.trigger_high:
+            self.relay_pin.on()
+        else:
+            self.relay_pin.off()
+
+    def off(self):
+        """
+        继电器关闭
+        """
+        if self.trigger_high:
+            self.relay_pin.off()
+        else:
+            self.relay_pin.on()
+
+    def get_relay_status(self):
+        """
+        获取继电器状态
+
+        :return: 继电器状态 (1表示开启，0表示关闭)
+        :rtype: int or None
+        """
+        if self.relay_status_pin is not None:
+            return self.relay_status_pin.value()
+        else:
+            return None
 
 '''
 Author: cuipu g050505@gmail.com

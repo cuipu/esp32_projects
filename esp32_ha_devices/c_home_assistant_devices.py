@@ -32,7 +32,10 @@ HOMEASSISTANT_SWITCH_TYPE_RELAY_CONTROLLER = 'relay'
 
 MQTT_CLIENT_CHECK_MSG_FREQ = 0.1
 
-RELAY_GPIO_NUM = 22
+# 单路继电器
+RELAY_GPIO_NUM = 19
+RELAY_STATUS_GPIO_NUM = 18
+
 # 人体传感器
 INFRARED_MOTION_SENSOR_GPIO_NUM = 35
 
@@ -141,7 +144,7 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
 
         self.relay_gpio_num = RELAY_GPIO_NUM
 
-        self.relay = Relay(RELAY_GPIO_NUM)
+        self.relay = Relay(RELAY_GPIO_NUM,RELAY_STATUS_GPIO_NUM)
 
         # 人体传感器
         self.infrared_motion_sensor = InfraredMotionSensor(
@@ -186,6 +189,8 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def do_work(self):
         while True:
                 self.mqtt_client.check_msg()
+                print("infrared_motion_sensor： " + str(self.infrared_motion_sensor.is_motion_detected())   + " light_sensor： " + str(self.light_sensor.read_light_analog()) 
+                + " get_relay_state： " + str(self.relay.get_relay_status()))
                 # 控制检测MQTT的频率
                 time.sleep(MQTT_CLIENT_CHECK_MSG_FREQ)
         '''
@@ -212,8 +217,8 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
             # 重启设备
             machine.reset()
         '''
-    def multi_thread_start_device(self):
-        self.multi_thread_util.start_new_thread(self.do_work)
+    # def multi_thread_start_device(self):
+    #    self.multi_thread_util.start_new_thread(self.do_work)
 
     def start_device(self):
         self.do_work()
@@ -221,7 +226,7 @@ class HASwitchDevice(HomeAssistantSwitchDevice):
     def infrared_motion_sensor_hander(self, *arges):
         # 判断亮度是否需要开灯
         light_analog_value = self.light_sensor.read_light_analog()
-        if (light_analog_value > LIGHT_SENSOR_THRESHOLD):
+        if ((light_analog_value > LIGHT_SENSOR_THRESHOLD) and self.relay.get_relay_status() == 0):
             # 开灯
             self.relay.on()
             self.mqtt_client.publish(
