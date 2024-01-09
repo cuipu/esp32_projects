@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-04-26 13:10:52
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-08-27 22:17:34
+LastEditTime: 2024-01-09 22:05:50
 FilePath: \esp32_projects\esp32_ha_devices\c_utils.py
 Description: ESP32 WiFi小工具
 
@@ -33,64 +33,54 @@ from machine import Timer
 """
 class WiFiUtil:
 
-
+    '''
+    description: 初始化
+    param {*} self
+    param {*} wifi_ssid WiFi名称
+    param {*} wifi_password WiFi密码 
+    return {*}
+    '''
 
     def __init__(self):
-        '''
-        description: 初始化
-        param {*} self
-        param {*} wifi_ssid WiFi名称
-        param {*} wifi_password WiFi密码 
-        return {*}
-        '''
         self.wifi_ssid = ''
         self.wifi_password = ''
         self.wlan = network.WLAN(network.STA_IF)
         self.wlan.active(True)
         self.wifi_config = None
+        self.wifi_is_connected = False
 
     def do_connect(self, wifi_ssid: str, wifi_password: str,timeout=15):
         '''
-        连接网络
-        
-        self.wifi_ssid = wifi_ssid
-        self.wifi_password = wifi_password
-        if not self.wlan.isconnected():
-            print('connect network...')
-            self.wlan.connect(wifi_ssid, wifi_password)
-            i = 1
-            while not self.wlan.isconnected():
-                print("connecting...{}".format(i))
-                i += 1
-                time.sleep(1)
-                if (i >= timeout):
-                    print("WiFi connection timeout")
-                    return
-        self.wifi_config = self.wlan.ifconfig()
-        self.show_current_wifi_config()
-        '''
-
-        '''
         连接网络，添加超时逻辑
         '''
-        self.wifi_ssid = wifi_ssid
-        self.wifi_password = wifi_password
-        if not self.wlan.isconnected():
-            print('connect network...')
-            self.wlan.connect(wifi_ssid, wifi_password)
+        start_time = utime.time()
+        try:
+            self.wifi_ssid = wifi_ssid
+            self.wifi_password = wifi_password
+            if not self.wlan.isconnected():
+                print("Connecting to WiFi...")
+                self.wlan.connect(wifi_ssid, wifi_password)
+                while not self.wlan.isconnected() and utime.time() - start_time < timeout:
+                    print("connecting...{}".format(i))
+                    time.sleep(1)
+                if self.wlan.isconnected():
+                    print("Connected to WiFi")
+                    self.wifi_is_connected = True
+                    self.wifi_config = self.wlan.ifconfig()
+                    self.show_current_wifi_config()
+                else:
+                    print("Failed to connect to WiFi within the specified timeout")
 
-            # 等待最多timeout秒直到连接成功或超时
-            i = 1
-            while not self.wlan.isconnected() and i < timeout:
-                print("connecting...{}".format(i))
-                i += 1
-                time.sleep(1)
-
-        if self.wlan.isconnected():
-            self.wifi_config = self.wlan.ifconfig()
-            self.show_current_wifi_config()
-        else:
-            print("WiFi connection timeout")
+        except MemoryError:
+            print("Memory error occurred. Restarting...")
+        except OSError as e:
+            error_code = e.args[0]
+            error_name = uerrno.errorcode[error_code]
+            print("OSError:", error_name)
+        except Exception as e:
+            print(f"Exception occurred: {e}")
+            # sys.print_exception(e) 
+        
 
     def is_connected(self):
         '''
@@ -146,7 +136,6 @@ class WiFiUtil:
             wifi_ssid_list.append(str(wifi_ssid, 'utf-8'))
         # print('wifi_ssid_list {}'.format(wifi_ssid_list))
         return wifi_ssid_list
-
 
 
 

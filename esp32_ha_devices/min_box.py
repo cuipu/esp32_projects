@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-07-23 23:40:05
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-09-05 17:45:32
+LastEditTime: 2024-01-09 22:26:09
 FilePath: \esp32_projects\esp32_ha_devices\min_box.py
 Description: 
 
@@ -36,7 +36,8 @@ LightSensor_PIN = 17
 InfraredMotionSensor_PIN = 34
 
 # 继电器
-Relay_PIN = 19
+RELAY_GPIO_NUM = 19
+RELAY_STATUS_GPIO_NUM = 18
 
 # WiFi配置
 WIFI_SSID = 'AX6K'
@@ -51,22 +52,25 @@ class MinBox():
         self.c_LightSensorThreePin = LightSensorThreePin(LightSensor_PIN)
         self.c_InfraredMotionSensor= InfraredMotionSensor(InfraredMotionSensor_PIN)
         self.c_InfraredMotionSensor.set_hander(self.infraredMotionSensor_hander)
-        self.c_Relay = Relay(Relay_PIN)
+        self.c_Relay = Relay(RELAY_GPIO_NUM,RELAY_STATUS_GPIO_NUM)
         self.light_digital = 0
-        self.temp = "1"
-        self.wifi_is_connected_flag = False
+        self.temp = ""
+        # self.wifi_is_connected_flag = False
         self.is_motion_detected = False
         self.current_datetime_hms = "00:00:00"
 
         self.timer = Timer(1)
-        self.timer.init(period=1000 * 60 * 60 * 1, mode=Timer.PERIODIC, callback=self.synchronize_time_with_wifi)
         self.wifi_util = WiFiUtil()
         self.time_util = TimeUtil()
-        self.multiThreadUtil = MultiThreadUtil()
-
+        self.wifi_util.do_connect(WIFI_SSID, WIFI_PASSWORD)
+        self.synchronize_time_by_wifi()
+        
+        # self.multiThreadUtil = MultiThreadUtil()
+        self.timer.init(period=1000 * 60 * 60 * 1, mode=Timer.PERIODIC, callback=self.synchronize_time_by_wifi)
+        
     def do_work(self):
-        #self.multiThreadUtil.start_new_thread(self.synchronize_time_with_wifi)
-        self.synchronize_time_with_wifi()
+        #self.multiThreadUtil.start_new_thread(self.sync_time_by_wifi)
+        #self.synchronize_time_with_wifi()
         
         while(True):
             self.read_data_from_sensor()
@@ -79,52 +83,45 @@ class MinBox():
             print("hander ---> is_motion_detected: " + str(self.is_motion_detected) + " light_digital: " + str(self.light_digital) + " Temp: " + str(self.temp))
             return
         else:
-            self.c_Relay.on()
-            # 循环十五秒，打开继电器
-            j = 30
-            while(true):
-                self.show_datatime_temp_or_msg()
-                
-                if not self.c_InfraredMotionSensor.is_motion_detected():
-                    j = j - 2
-                else:
-                    j = j - 1
-                if j < 0:
-                    self.c_Relay.off()           
-                    # print("infraredMotionSensor_hander stop ---> is_motion_detected: " + str(self.c_InfraredMotionSensor.digital_pin.value()) + " light_digital: " + str(self.light_digital) + " Temp: " + str(self.temp))
-                    break 
-  
+            if self.c_Relay.get_relay_status() == 0 or self.c_Relay.get_relay_status() == None:
+                self.c_Relay.on()
+                start_time = utime.time()
+                timeout = 5
+                while(utime.time() - start_time < timeout):
+                    self.show_datatime_temp_or_msg() 
+                        
+                self.c_Relay.off()                 
+            # print("infraredMotionSensor_hander stop ---> is_motion_detected: " + str(self.c_InfraredMotionSensor.digital_pin.value()) + " light_digital: " + str(self.light_digital) + " Temp: " + str(self.temp))
+                   
 
     def show_datatime_temp_or_msg(self):
+        
+        # print("show_datatime_temp_or_msg ---> is_motion_detected: " + str(self.is_motion_detected) + " light_digital: " + str(self.light_digital) + " Temp: " + str(self.temp))
         self.c_ESP32160lcd.clear_msg()
-        print("show_datatime_temp_or_msg ---> is_motion_detected: " + str(self.is_motion_detected) + " light_digital: " + str(self.light_digital) + " Temp: " + str(self.temp))
         self.read_data_from_sensor()
-        if(self.wifi_is_connected_flag):
+        if self.wifi_util.wifi_is_connected:
+            # self.c_ESP32160lcd.show_msg("hello ","Temp: " + str(self.temp))
             self.c_ESP32160lcd.show_msg(self.time_util.get_current_datetime_hms(),"Temp: " + str(self.temp))
+            #self.c_ESP32160lcd.show_msg(self.time_util.get_current_datetime(),"Temp: " + str(self.temp))
         else:
-            self.c_ESP32160lcd.show_msg(str(self.is_motion_detected) + " --- " + str(self.light_digital),"Temp: " + str(self.temp))
+            self.c_ESP32160lcd.show_msg(str(self.is_motion_detected) + " --- " + str(self.light_digital), "Temp: " + str(self.temp))
         time.sleep(1)
         self.c_ESP32160lcd.clear_msg()
-    
+        
     def read_data_from_sensor(self):
         self.device, self.temp = self.c_Ds18b20TemperatureSensor.collect_temperature_result()
         self.light_digital = self.c_LightSensorThreePin.read_light_digital()
         self.is_motion_detected = self.c_InfraredMotionSensor.is_motion_detected()
 
-    def synchronize_time_with_wifi(self):       
-        if not self.wifi_is_connected_flag:
-            self.wifi_util.do_connect(WIFI_SSID, WIFI_PASSWORD)
-            if self.wifi_util.is_connected():
-                self.wifi_is_connected_flag = True
-                self.time_util.synchronised_local_time()
+    def synchronize_time_by_wifi(self):  
+        if not self.wifi_util.wifi_is_connected:
+            #self.wifi_util.do_connect(WIFI_SSID, WIFI_PASSWORD)
+            #if self.wifi_util.is_connected():
+            #    elf.wifi_util.wifi_is_connected = True
+            #    self.time_util.synchronised_local_time()
+            print("WiFi is not connected...")
         else:
             self.time_util.synchronised_local_time()
-
-    def wait_for_wifi_connection(wifi, timeout=15):
-        start_time = utime.time()
-        while not self.wifi_is_connected_flag() and (utime.time() - start_time) < timeout:
-            utime.sleep(0.1)
-
 
 def main():
     try:
@@ -147,4 +144,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
