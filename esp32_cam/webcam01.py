@@ -2,7 +2,7 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-20 09:40:04
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-07-26 11:04:22
+LastEditTime: 2024-02-26 11:15:12
 FilePath: \esp32_projects\esp32_cam\webcam01.py
 Description: 
 
@@ -28,7 +28,7 @@ def led_blink_timed(timer, led_pin, state):
     elif state == 'BUSY':
         timer.init(period=ST_BUSY, mode=Timer.PERIODIC, callback=lambda t: toggle_led(led_pin))
     else:
-        print('not define yet')
+        print('not define yet') 
 
 # 声明引脚 D2 作为LED的引脚
 led_pin = Pin(4, Pin.OUT)
@@ -38,7 +38,7 @@ led_blink_timed(timer, led_pin, state='INIT')
 
 
 # 填上 Wi-Fi 连线信息
-WIFI_SSID = 'AX6K-5G'
+WIFI_SSID = 'AX6K'
 WIFI_PASSWORD = '1234567890...'
 
 def connect_WiFi():

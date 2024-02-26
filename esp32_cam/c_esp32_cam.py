@@ -20,7 +20,7 @@ import machine
 from microdot import Microdot
 
 
-WIFI_SSID = 'TP-LINK_502_2.4G'
+WIFI_SSID = 'AX6K'
 WIFI_PASSWORD = '1234567890...'
 SDCARD_DIR = '/sd'
 

@@ -2,13 +2,13 @@
 Author: cuipu g050505@gmail.com
 Date: 2023-05-20 10:16:03
 LastEditors: cuipu g050505@gmail.com
-LastEditTime: 2023-05-20 22:08:50
+LastEditTime: 2024-01-19 18:41:41
 FilePath: \esp32_projects\esp32_cam\webcam02.py
 Description: 
 
 Copyright (c) 2023 by Mr.Cui, All Rights Reserved. 
 '''
-WIFI_SSID = 'TP-LINK_502_2.4G'
+WIFI_SSID = 'AX6K'
 WIFI_PASSWORD = '1234567890...'
 
 # 设置服务器地址和端口
@@ -169,8 +169,8 @@ class Webcam:
 
 def main():
     # 设置 WiFi SSID 和密码
-    ssid = 'YourWiFiSSID'
-    password = 'YourWiFiPassword'
+    ssid = 'AX6K'
+    password = '1234567890...'
 
     # 创建 Webcam 实例
     webcam = Webcam(WIFI_SSID, WIFI_PASSWORD)
