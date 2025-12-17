@@ -1,0 +1,24 @@
+# config.txt  -  最终最优格式（支持注释、空行、空格、单引号双引号全兼容）
+# WiFi
+wifi_name=AX6K
+wifi_password=1234567890...
+
+# MQTT
+mqtt_server=192.168.2.80
+mqtt_port=1883
+mqtt_user=test
+mqtt_password=1234560.
+mqtt_keepalive=120
+
+# HA 设备
+homeassistant_device_name=esp32
+homeassistant_sensor_name=book_room_temp
+homeassistant_sensor_type=Temperature
+
+# 硬件引脚
+ds18b20_gpio_num=19
+passive_buzzer_gpio_num=23
+relay_gpio_num=26
+
+# 其他
+temperature_send_msg_freq=30
