@@ -88,27 +88,21 @@ class HATemperatureSensor:
         #config_topic = "homeassistant/sensor/{}/{}/config".format(dev_name, sensor_name)
         config_topic = f"homeassistant/sensor/{dev_name}/{sensor_name}/config"
         print(f"[HA] 自动发现消息已发送 config_topic → {config_topic}")
-        #config_topic = "homeassistant/sensor/HA/HA-{}-{}/config".format(dev_name, sensor_name)
-
-
-        # n = name
-        # 使用unique_id缩写键名 uniq_id 也可以
-        # 使用state_topic缩写键名 stat_t 减小体积
-        # 缩写 identifiers -> ids
-        # 缩写 manufacturer -> mf
+        #config_topic = "homeassistant/sensor/HA/HA-{}-{}/config".format(dev_name, sensor_name)      
         
         payload = {
-            "n": sensor_type, 
-            "uniq_id": f"{dev_name}_{sensor_name}",  
-            "stat_t": self.homeassistant_state_topic, 
+            "n": sensor_type, # n = name
+            "uniq_id": f"{dev_name}_{sensor_name}",  # 使用unique_id缩写键名 uniq_id 也可以
+            "stat_t": self.homeassistant_state_topic, # 使用state_topic缩写键名 stat_t 减小体积
             "dev_cla": "temperature",
+            "unit_of_measurement": "C", # 只用用C表示温度单位，因为℃是特殊字符，发送HA会报错
             # "unit_of_measurement": "℃",  # 注意这个数据在ESP32中会导致发送失败，即℃符号导致发送失败，所以不要发这种数据
             # "command_topic": self.command_topic,
             "icon": "mdi:thermometer",
             "device": {
-                "ids": [dev_name], 
+                "ids": [dev_name], # 缩写 identifiers -> ids
                 "name": dev_name,
-                "mf": "ESP32",  
+                "mf": "ESP32",  # 缩写 manufacturer -> mf
                 "sw_version": "1.0"
             }
         }
